@@ -188,11 +188,11 @@ fun Dialog(
             onDismissRequest = onDismiss,
             dismissButton = {
                 AssistChip(
-                    onClick = onConfirm,
+                    onClick = onDismiss,
                     label = {
                         Text(
                             modifier = Modifier.padding(top = 2.sdp(), bottom = 2.sdp()),
-                            text = stringResource(R.string.yes),
+                            text = stringResource(R.string.no),
                             fontSize = FontSize
                         )
                     }
@@ -200,11 +200,11 @@ fun Dialog(
             },
             confirmButton = {
                 AssistChip(
-                    onClick = onDismiss,
+                    onClick = onConfirm,
                     label = {
                         Text(
                             modifier = Modifier.padding(top = 2.sdp(), bottom = 2.sdp()),
-                            text = stringResource(R.string.no),
+                            text = stringResource(R.string.yes),
                             fontSize = FontSize
                         )
                     }
@@ -225,7 +225,7 @@ fun NoRoot() {
                 modifier = Modifier.size(40.sdp())
             )
         },
-        title = {},
+        title = null,
         text = {
             Text(
                 modifier = Modifier.fillMaxWidth(),
@@ -312,7 +312,7 @@ fun UnknownDevice() {
                 tint = MaterialTheme.colorScheme.primary
             )
         },
-        title = {},
+        title = null,
         text = {
             Text(
                 modifier = Modifier.fillMaxWidth(),

@@ -15,8 +15,8 @@ android {
         applicationId = "com.remtrik.m3khelper"
         minSdk = 29
         targetSdk = 36
-        versionCode = 67
-        versionName = "6.2.0-TDWRA"
+        versionCode = 68
+        versionName = "6.3.0-TFDID"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,7 +33,10 @@ android {
         release {
             isShrinkResources = true
             isMinifyEnabled = true
-            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
             vcsInfo.include = false
         }
     }
@@ -42,6 +45,7 @@ android {
         buildConfig = true
     }
 
+    //noinspection WrongGradleMethod
     kotlin {
         jvmToolchain(21)
         compilerOptions {
@@ -82,10 +86,12 @@ android {
         }
     }
 
+    //noinspection WrongGradleMethod
     androidComponents {
         onVariants { variant ->
             variant.outputs.forEach { output ->
-                val abi = output.filters.find { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }?.identifier
+                val abi =
+                    output.filters.find { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }?.identifier
                 output.outputFileName.set("M3K_Helper_v${defaultConfig.versionName}_${defaultConfig.versionCode}-${variant.name}-${abi ?: "all"}.apk")
             }
         }
@@ -112,9 +118,9 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     debugImplementation(libs.androidx.compose.ui.tooling)
 
-    //implementation(libs.androidx.lifecycle.runtime.compose)
-    //implementation(libs.androidx.lifecycle.runtime.ktx)
-    //implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    implementation(libs.androidx.lifecycle.runtime.ktx)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
 
     implementation(libs.compose.destinations.core)
     ksp(libs.compose.destinations.ksp)

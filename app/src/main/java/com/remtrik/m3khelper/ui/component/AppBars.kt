@@ -23,6 +23,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.lifecycle.compose.dropUnlessResumed
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
 import com.ramcosta.composedestinations.spec.DirectionDestinationSpec
+import com.remtrik.m3khelper.R
 import com.remtrik.m3khelper.util.variables.FontSize
 import com.remtrik.m3khelper.util.variables.LineHeight
 import com.remtrik.m3khelper.util.variables.PaddingValue
@@ -57,7 +58,7 @@ fun CommonTopAppBar(
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Navigate back",
+                    contentDescription = stringResource(R.string.navigate_back),
                     modifier = Modifier.size(20.sdp())
                 )
             }
@@ -83,7 +84,7 @@ fun CommonTopAppBar(
             ) {
                 Icon(
                     imageVector = icon ?: return@IconButton,
-                    contentDescription = "Navigate to ${destination?.label}",
+                    contentDescription = null,
                     modifier = Modifier.size(25.sdp())
                 )
             }

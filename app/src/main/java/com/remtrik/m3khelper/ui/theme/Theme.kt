@@ -9,7 +9,7 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -55,15 +55,17 @@ fun M3KHelperTheme(
         return
     }
 
-    val engineEnable by AppSettings.themeEngineEnable.collectAsState()
-    val materialUEnable by AppSettings.themeEngineEnableMaterialU.collectAsState()
-    val styleName by AppSettings.themeEnginePaletteStyle.collectAsState()
-    val r by AppSettings.themeEngineColorR.collectAsState()
-    val g by AppSettings.themeEngineColorG.collectAsState()
-    val b by AppSettings.themeEngineColorB.collectAsState()
+    val engineEnable by AppSettings.themeEngineEnable.flow.collectAsStateWithLifecycle()
+    val materialUEnable by AppSettings.themeEngineEnableMaterialU.flow.collectAsStateWithLifecycle()
+    val styleName by AppSettings.themeEnginePaletteStyle.flow.collectAsStateWithLifecycle()
+    val r by AppSettings.themeEngineColorR.flow.collectAsStateWithLifecycle()
+    val g by AppSettings.themeEngineColorG.flow.collectAsStateWithLifecycle()
+    val b by AppSettings.themeEngineColorB.flow.collectAsStateWithLifecycle()
 
     val style = remember(styleName) {
-        runCatching { PaletteStyle.valueOf(styleName) }.getOrDefault(PaletteStyle.TonalSpot)
+        runCatching {
+            styleName?.let { PaletteStyle.valueOf(it) }
+        }.getOrDefault(PaletteStyle.TonalSpot)
     }
 
     val colorScheme = remember(darkTheme, engineEnable, materialUEnable, style, r, g, b) {
@@ -73,11 +75,13 @@ fun M3KHelperTheme(
             }
 
             engineEnable -> {
-                dynamicColorScheme(
-                    seedColor = Color(r, g, b),
-                    isDark = darkTheme,
-                    style = style,
-                )
+                style?.let {
+                    dynamicColorScheme(
+                        seedColor = Color(r, g, b),
+                        isDark = darkTheme,
+                        style = it,
+                    )
+                }
             }
 
             darkTheme -> DarkColorScheme
@@ -85,10 +89,12 @@ fun M3KHelperTheme(
         }
     }
 
-    MaterialTheme(
-        colorScheme = animateColorScheme(colorScheme),
-        typography = Typography,
-        motionScheme = MotionScheme.expressive(),
-        content = content
-    )
+    colorScheme?.let {
+        MaterialTheme(
+            colorScheme = animateColorScheme(it),
+            typography = Typography,
+            motionScheme = MotionScheme.expressive(),
+            content = content
+        )
+    }
 }

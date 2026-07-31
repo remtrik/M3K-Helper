@@ -9,7 +9,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class DeviceCard(
-    val deviceCodename: Array<String>,
+    val deviceCodename: List<String>,
     val deviceName: String,
     val deviceImage: Int,
     val deviceGuide: String,
@@ -22,60 +22,10 @@ data class DeviceCard(
     val noGroup: Boolean, val noDrivers: Boolean,
     val noUEFI: Boolean, val unifiedDriversUEFI: Boolean,
     val noLinks: Boolean = false
-) : Parcelable {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as DeviceCard
-
-        if (deviceImage != other.deviceImage) return false
-        if (noModem != other.noModem) return false
-        if (noFlash != other.noFlash) return false
-        if (noBoot != other.noBoot) return false
-        if (noMount != other.noMount) return false
-        if (sensors != other.sensors) return false
-        if (noGuide != other.noGuide) return false
-        if (noGroup != other.noGroup) return false
-        if (noDrivers != other.noDrivers) return false
-        if (noUEFI != other.noUEFI) return false
-        if (unifiedDriversUEFI != other.unifiedDriversUEFI) return false
-        if (noLinks != other.noLinks) return false
-        if (!deviceCodename.contentEquals(other.deviceCodename)) return false
-        if (deviceName != other.deviceName) return false
-        if (deviceGuide != other.deviceGuide) return false
-        if (groupLink != other.groupLink) return false
-        if (driversLink != other.driversLink) return false
-        if (uefiLink != other.uefiLink) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = deviceImage
-        result = 31 * result + noModem.hashCode()
-        result = 31 * result + noFlash.hashCode()
-        result = 31 * result + noBoot.hashCode()
-        result = 31 * result + noMount.hashCode()
-        result = 31 * result + sensors.hashCode()
-        result = 31 * result + noGuide.hashCode()
-        result = 31 * result + noGroup.hashCode()
-        result = 31 * result + noDrivers.hashCode()
-        result = 31 * result + noUEFI.hashCode()
-        result = 31 * result + unifiedDriversUEFI.hashCode()
-        result = 31 * result + noLinks.hashCode()
-        result = 31 * result + deviceCodename.contentHashCode()
-        result = 31 * result + deviceName.hashCode()
-        result = 31 * result + deviceGuide.hashCode()
-        result = 31 * result + groupLink.hashCode()
-        result = 31 * result + driversLink.hashCode()
-        result = 31 * result + uefiLink.hashCode()
-        return result
-    }
-}
+) : Parcelable
 
 val vayuCard: DeviceCard = DeviceCard(
-    arrayOf("vayu", "bhima"),
+    listOf("vayu", "bhima"),
     "POCO X3 Pro",
     drawable.vayu,
     "https://github.com/WaLoVayu/POCOX3Pro-Windows-Guides",
@@ -90,7 +40,7 @@ val vayuCard: DeviceCard = DeviceCard(
 )
 
 val nabuCard: DeviceCard = DeviceCard(
-    arrayOf("nabu"),
+    listOf("nabu"),
     "Xiaomi Pad 5",
     drawable.nabu,
     "https://github.com/erdilS/Port-Windows-11-Xiaomi-Pad-5",
@@ -105,7 +55,7 @@ val nabuCard: DeviceCard = DeviceCard(
 )
 
 val raphaelCard: DeviceCard = DeviceCard(
-    arrayOf("raphael"),
+    listOf("raphael"),
     "Xiaomi Mi 9T Pro",
     drawable.raphael,
     "https://github.com/graphiks/woa-raphael",
@@ -120,12 +70,12 @@ val raphaelCard: DeviceCard = DeviceCard(
 )
 
 val raphaelinCard: DeviceCard =
-    raphaelCard.copy(deviceCodename = arrayOf("raphaelin"), deviceName = "Redmi K20 Pro")
+    raphaelCard.copy(deviceCodename = listOf("raphaelin"), deviceName = "Redmi K20 Pro")
 val raphaelsCard: DeviceCard =
-    raphaelCard.copy(deviceCodename = arrayOf("raphaels"), deviceName = "Redmi K20 Pro Premium")
+    raphaelCard.copy(deviceCodename = listOf("raphaels"), deviceName = "Redmi K20 Pro Premium")
 
 val cepheusCard: DeviceCard = DeviceCard(
-    arrayOf("cepheus"),
+    listOf("cepheus"),
     "Xiaomi Mi 9",
     drawable.cepheus,
     "https://github.com/ivnvrvnn/Port-Windows-XiaoMI-9",
@@ -140,7 +90,7 @@ val cepheusCard: DeviceCard = DeviceCard(
 )
 
 val berylliumCard: DeviceCard = DeviceCard(
-    arrayOf("beryllium"),
+    listOf("beryllium"),
     "POCO F1",
     drawable.beryllium,
     "https://github.com/n00b69/woa-beryllium",
@@ -155,7 +105,7 @@ val berylliumCard: DeviceCard = DeviceCard(
 )
 
 val miatollCard: DeviceCard = DeviceCard(
-    arrayOf("miatoll", "durandal", "curtana_india", "joyeuse", "miatoll_mainline"),
+    listOf("miatoll", "durandal", "curtana_india", "joyeuse", "miatoll_mainline"),
     "Redmi Note 9 Pro",
     drawable.miatoll,
     "https://github.com/woa-miatoll/Port-Windows-11-Redmi-Note-9-Pro",
@@ -169,14 +119,14 @@ val miatollCard: DeviceCard = DeviceCard(
     noUEFI = false, unifiedDriversUEFI = true
 )
 val curtanaCard: DeviceCard =
-    miatollCard.copy(deviceCodename = arrayOf("curtana"), deviceName = "Redmi Note 9S")
+    miatollCard.copy(deviceCodename = listOf("curtana"), deviceName = "Redmi Note 9S")
 val excaliburCard: DeviceCard =
-    miatollCard.copy(deviceCodename = arrayOf("excalibur"), deviceName = "Redmi Note 9 Pro Max")
+    miatollCard.copy(deviceCodename = listOf("excalibur"), deviceName = "Redmi Note 9 Pro Max")
 val gramCard: DeviceCard =
-    miatollCard.copy(deviceCodename = arrayOf("gram"), deviceName = "POCO M2 Pro")
+    miatollCard.copy(deviceCodename = listOf("gram"), deviceName = "POCO M2 Pro")
 
 val alphaCard: DeviceCard = DeviceCard(
-    arrayOf("alpha", "alphalm"),
+    listOf("alpha", "alphalm"),
     "LG G8",
     drawable.alpha,
     "https://github.com/n00b69/woa-alphaplus",
@@ -191,7 +141,7 @@ val alphaCard: DeviceCard = DeviceCard(
 )
 
 val mh2lm5gCard: DeviceCard = DeviceCard(
-    arrayOf("mh2lm5g"),
+    listOf("mh2lm5g"),
     "LG V50S",
     drawable.mh2,
     "https://github.com/n00b69/woa-mh2lm5g",
@@ -206,7 +156,7 @@ val mh2lm5gCard: DeviceCard = DeviceCard(
 )
 
 val mh2Card: DeviceCard = mh2lm5gCard.copy(
-    deviceCodename = arrayOf("mh2", "mh2lm"),
+    deviceCodename = listOf("mh2", "mh2lm"),
     deviceName = "LG G8X",
     deviceGuide = "https://github.com/n00b69/woa-mh2lm",
     uefiLink = "https://github.com/n00b69/woa-mh2lm/releases/tag/UEFI",
@@ -214,7 +164,7 @@ val mh2Card: DeviceCard = mh2lm5gCard.copy(
 )
 
 val betaCard: DeviceCard = DeviceCard(
-    arrayOf("beta", "betalm"),
+    listOf("beta", "betalm"),
     "LG G8S",
     drawable.beta,
     "https://github.com/n00b69/woa-betalm",
@@ -229,14 +179,14 @@ val betaCard: DeviceCard = DeviceCard(
 )
 
 val flashCard: DeviceCard = mh2lm5gCard.copy(
-    deviceCodename = arrayOf("flash", "flashlm"),
+    deviceCodename = listOf("flash", "flashlm"),
     deviceName = "LG V50",
     deviceGuide = "https://github.com/n00b69/woa-flashlmdd",
     deviceImage = drawable.flashlm
 )
 
 val guacamoleCard: DeviceCard = DeviceCard(
-    arrayOf("guacamole", "OnePlus7Pro"),
+    listOf("guacamole", "OnePlus7Pro"),
     "OnePlus 7 Pro",
     drawable.guacamole,
     "",
@@ -251,13 +201,13 @@ val guacamoleCard: DeviceCard = DeviceCard(
 )
 
 val hotdogCard: DeviceCard = guacamoleCard.copy(
-    deviceCodename = arrayOf("hotdog", "OnePlus7TPro"),
+    deviceCodename = listOf("hotdog", "OnePlus7TPro"),
     deviceName = "OnePlus 7T Pro",
     deviceImage = drawable.hotdog
 )
 
 val suryaCard: DeviceCard = DeviceCard(
-    arrayOf("surya", "karna"),
+    listOf("surya", "karna"),
     "POCO X3",
     drawable.vayu,
     "https://github.com/woa-surya/POCOX3NFC-Guides",
@@ -273,7 +223,7 @@ val suryaCard: DeviceCard = DeviceCard(
 )
 
 val a52sxqCard: DeviceCard = DeviceCard(
-    arrayOf("a52sxq"),
+    listOf("a52sxq"),
     "Samsung Galaxy A52s",
     drawable.a52sxq,
     "https://github.com/woa-a52s/Samsung-A52s-5G-Guides",
@@ -288,7 +238,7 @@ val a52sxqCard: DeviceCard = DeviceCard(
 )
 
 val beyond1Card: DeviceCard = DeviceCard(
-    arrayOf("beyond1"),
+    listOf("beyond1"),
     "Samsung Galaxy S10",
     drawable.beyond1,
     "",
@@ -303,7 +253,7 @@ val beyond1Card: DeviceCard = DeviceCard(
 )
 
 val debugCard: DeviceCard = DeviceCard(
-    arrayOf("emu64xa"),
+    listOf("emu64xa"),
     "emu64xa",
     drawable.vayu,
     "https://google.com",
@@ -318,7 +268,7 @@ val debugCard: DeviceCard = DeviceCard(
 )
 
 val unknownCard: DeviceCard = DeviceCard(
-    arrayOf("unknown"),
+    listOf("unknown"),
     unknown_device.string(),
     drawable.ic_device_unknown,
     "",

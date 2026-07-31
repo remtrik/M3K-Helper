@@ -24,11 +24,11 @@
     <string name="unknown_device">Неизвестное устройство</string>
     <string name="model">Модель: %s (%s)</string>
     <string name="ramvalue">ОЗУ: %s</string>
-    <string name="paneltype">"Дисплей: %1s"</string>
+    <string name="paneltype">Дисплей: %s</string>
     <string name="unknown_panel">Неизвестно</string>
-    <string name="slot">Слот: %1s</string>
-    <string name="backup_boot_state">"Бекап boot образа: %s"</string>
-    <string name="windows_status">"Windows установленна: %1s"</string>
+    <string name="slot">Слот: %s</string>
+    <string name="backup_boot_state">Бекап boot образа: %s</string>
+    <string name="windows_status">Windows установленна: %s</string>
 
     <string name="guide">Инструкция для %s</string>
     <string name="group">Чат для %s</string>
@@ -67,7 +67,7 @@
     <string name="enable_materialu_summary">Использовать системные цвета</string>
     <string name="theme_engine_enable">Включить кастомную цветовую схему</string>
     <string name="theme_engine_enable_summary">Использовать кастомные цвета</string>
-    <string name="theme_engine_current_palette">Текущая палитра: %1s</string>
+    <string name="theme_engine_current_palette">Текущая палитра: %s</string>
 
     <string name="download">Скачать</string>
     <string name="reload">Перезагрузить</string>
@@ -76,8 +76,15 @@
     <string name="new_update_summary">Текущая версия: %s\n Новая версия: %s</string>
 
     <string name="backupboot_error">Не удалось сделать резервную копию текущего boot образа</string>
-    <string name="error_reason">Причина: %1$s</string>
+    <string name="error_reason">Причина: %s</string>
     <string name="mount_error_default">Невозможно монтировать Windows, скорее всего отсутствует раздел</string>
     <string name="manual_reboot_toast">Если вы уверены, что все впорядке, перезагрузитесь вручную</string>
+    <string name="mnt_error_title">Не удалось смонтировать/размонтировать Windows</string>
+    <string name="quickboot_error_title">Не удалось выполнить быструю загрузку в Windows</string>
+
+    <string name="unknown_error">Неизвестная ошибка</string>
+    <string name="no_browser">Не удалось найти браузер для открытия ссылки</string>
+    <string name="navigate_back">Вернуться назад</string>
+    <string name="version_format">v%s</string>
 
 </resources>

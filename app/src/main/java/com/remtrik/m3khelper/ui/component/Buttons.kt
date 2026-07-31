@@ -57,91 +57,8 @@ import com.remtrik.m3khelper.util.variables.commandHandler
 import com.remtrik.m3khelper.util.variables.device
 import com.remtrik.m3khelper.util.variables.dynamicVars
 import com.remtrik.m3khelper.util.variables.sdp
-import com.remtrik.m3khelper.util.variables.showBootBackupErrorDialog
-import com.remtrik.m3khelper.util.variables.showMountErrorDialog
+import com.remtrik.m3khelper.util.variables.CommandError
 import kotlinx.coroutines.launch
-
-// --Commented out by Inspection START (10/3/2025 9:21 PM):
-//@Composable
-//fun CommandButton(
-//    title: Int,
-//    subtitle: Int,
-//    question: Int,
-//    command: () -> Unit,
-//    icon: Int
-//) {
-//    val showDialog = remember { mutableStateOf(false) }
-//    val showSpinner = remember { mutableStateOf(false) }
-//
-//    val scope = rememberCoroutineScope()
-//
-//    ElevatedCard(
-//        onClick = { showDialog.value = true },
-//        modifier = Modifier
-//            .height(105.sdp())
-//            .fillMaxWidth(),
-//    ) {
-//        when {
-//            showSpinner.value -> {
-//                StatusDialog(
-//                    icon = painterResource(id = icon),
-//                    title = string.please_wait,
-//                    showDialog = showSpinner.value,
-//                )
-//            }
-//        }
-//        when {
-//            showDialog.value -> {
-//                Dialog(
-//                    icon = painterResource(id = icon),
-//                    title = null,
-//                    description = stringResource(question),
-//                    showDialog = showDialog.value,
-//                    onDismiss = { showDialog.value = false },
-//                    onConfirm = {
-//                        scope.launch {
-//                            withContext(Dispatchers.IO) {
-//                                showDialog.value = false
-//                                showSpinner.value = true
-//                                command()
-//                                showSpinner.value = false
-//                            }
-//                        }
-//                    }
-//                )
-//            }
-//        }
-//        Row(
-//            modifier = Modifier
-//                .fillMaxHeight()
-//                .padding(PaddingValue),
-//            verticalAlignment = Alignment.CenterVertically,
-//            horizontalArrangement = Arrangement.spacedBy(5.sdp())
-//        ) {
-//            Icon(
-//                modifier = Modifier
-//                    .size(40.sdp()),
-//                painter = painterResource(id = icon),
-//                contentDescription = null,
-//                tint = MaterialTheme.colorScheme.primary
-//            )
-//            Column {
-//                Text(
-//                    stringResource(title),
-//                    fontWeight = FontWeight.Bold,
-//                    fontSize = FontSize,
-//                    lineHeight = LineHeight,
-//                )
-//                Text(
-//                    stringResource(subtitle),
-//                    lineHeight = LineHeight,
-//                    fontSize = FontSize
-//                )
-//            }
-//        }
-//    }
-//}
-// --Commented out by Inspection STOP (10/3/2025 9:21 PM)
 
 @Composable
 fun IconItem(
@@ -183,10 +100,10 @@ fun LinkButton(
         onClick = {
             try {
                 uriHandler.openUri(link)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 Toast.makeText(
                     M3KApp,
-                    "No browser found to open link",
+                    M3KApp.getString(string.no_browser),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -237,7 +154,7 @@ fun BackupButton() {
             .height(105.sdp())
             .fillMaxWidth(),
     ) {
-        if(showSpinner) {
+        if (showSpinner) {
             StatusDialog(
                 icon = painterResource(id = ic_backup),
                 title = string.please_wait,
@@ -254,8 +171,7 @@ fun BackupButton() {
                         modifier = Modifier.size(40.sdp())
                     )
                 },
-                title = {
-                },
+                title = null,
                 text = {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -282,8 +198,14 @@ fun BackupButton() {
                                             BootBackupState.ANDROID
                                         )
                                     if (!result.isSuccess) {
-                                        commandError.value = result.output[0]
-                                        showBootBackupErrorDialog.value = true
+                                        commandError.value = CommandError(
+                                            type = ErrorType.BOOTBACKUP_ERROR,
+                                            title = M3KApp.getString(string.backupboot_error),
+                                            message = result.error.firstOrNull()
+                                                ?: result.output.firstOrNull() ?: M3KApp.getString(
+                                                    string.unknown_error
+                                                )
+                                        )
                                     } else {
                                         dynamicVars()
                                     }
@@ -312,8 +234,13 @@ fun BackupButton() {
                                                 BootBackupState.WINDOWS
                                             )
                                         if (!result.isSuccess) {
-                                            commandError.value = result.output[0]
-                                            showBootBackupErrorDialog.value = true
+                                            commandError.value = CommandError(
+                                                type = ErrorType.BOOTBACKUP_ERROR,
+                                                title = M3KApp.getString(string.backupboot_error),
+                                                message = result.error.firstOrNull()
+                                                    ?: result.output.firstOrNull()
+                                                    ?: M3KApp.getString(string.unknown_error)
+                                            )
                                         }
                                         showSpinner = false
                                     }
@@ -343,8 +270,7 @@ fun BackupButton() {
                         )
                     }
                 },
-                confirmButton = {
-                }
+                confirmButton = { }
             )
         }
         Row(
@@ -392,17 +318,22 @@ fun MountButton() {
         if (showDialog) {
             if (isMounted == MountStatus.MOUNTED) {
                 Dialog(
-                    painterResource(id = ic_folder),
-                    null,
-                    stringResource(string.umnt_question),
-                    showDialog,
+                    icon = painterResource(id = ic_folder),
+                    title = null,
+                    description = stringResource(string.umnt_question),
+                    showDialog = showDialog,
                     onDismiss = { showDialog = false },
                     onConfirm = {
                         scope.launch {
                             val result = commandHandler.umountWindows()
                             if (!result.isSuccess) {
-                                commandError.value = result.output[0]
-                                showMountErrorDialog.value = true
+                                commandError.value = CommandError(
+                                    type = ErrorType.MOUNT_ERROR,
+                                    title = M3KApp.getString(string.mnt_error_title),
+                                    message = result.error.firstOrNull()
+                                        ?: result.output.firstOrNull()
+                                        ?: M3KApp.getString(string.unknown_error)
+                                )
                             }
                             showDialog = false
                             isMounted = commandHandler.isMounted()
@@ -420,8 +351,13 @@ fun MountButton() {
                         scope.launch {
                             val result = commandHandler.mountWindows()
                             if (!result.isSuccess) {
-                                commandError.value = result.output[0]
-                                showMountErrorDialog.value = true
+                                commandError.value = CommandError(
+                                    type = ErrorType.MOUNT_ERROR,
+                                    title = M3KApp.getString(string.mnt_error_title),
+                                    message = result.error.firstOrNull()
+                                        ?: result.output.firstOrNull()
+                                        ?: M3KApp.getString(string.unknown_error)
+                                )
                             }
                             showDialog = false
                             isMounted = commandHandler.isMounted()
@@ -497,8 +433,7 @@ fun QuickBootButton() {
                         modifier = Modifier.size(40.sdp())
                     )
                 },
-                title = {
-                },
+                title = null,
                 text = {
                     Text(
                         modifier = Modifier.fillMaxWidth(),
@@ -557,8 +492,7 @@ fun QuickBootButton() {
                         )
                     }
                 },
-                confirmButton = {
-                }
+                confirmButton = { }
             )
         }
         Row(

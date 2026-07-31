@@ -33,11 +33,11 @@
     <string name="unknown_device">Unknown device</string>
     <string name="model">Model: %s (%s)</string>
     <string name="ramvalue">RAM: %s</string>
-    <string name="paneltype">"Panel: %1s"</string>
+    <string name="paneltype">Panel: %s</string>
     <string name="unknown_panel">Unknown</string>
-    <string name="slot">"Slot: %1s"</string>
-    <string name="backup_boot_state">"Boot backup: %s"</string>
-    <string name="windows_status">"Windows installed: %1s"</string>
+    <string name="slot">Slot: %s</string>
+    <string name="backup_boot_state">Boot backup: %s</string>
+    <string name="windows_status">Windows installed: %s</string>
 
 
     <string name="guide">%s Installation Guide</string>
@@ -61,7 +61,7 @@
     <string name="settings">Settings</string>
     <string name="theme_engine">Theme Engine</string>
 
-    <string name="autoupdate">Check for updates"</string>
+    <string name="autoupdate">Check for updates</string>
     <string name="autoupdate_summary">Automatically check for updates when opening the app</string>
 
     <string name="override_device">Override device</string>
@@ -75,7 +75,7 @@
     <string name="enable_materialu_summary">Use system colors</string>
     <string name="theme_engine_enable">Enable custom color scheme</string>
     <string name="theme_engine_enable_summary">Use custom colors</string>
-    <string name="theme_engine_current_palette">Current palette: %1s</string>
+    <string name="theme_engine_current_palette">Current palette: %s</string>
 
     <string name="device_unknown">YOUR DEVICE ISN\’T SUPPORTED!\n USING THIS APP WILL RESULT IN A BRICK</string>
     <string name="device_unknown_confirm">I\’m fine with that</string>
@@ -87,8 +87,15 @@
     <string name="new_update_summary">Current version: %s\nNew version: %s</string>
 
     <string name="backupboot_error">Failed to backup boot</string>
-    <string name="error_reason">Reason: %1$s</string>
+    <string name="mnt_error_title">Failed to mount/unmount Windows</string>
+    <string name="quickboot_error_title">Failed to QuickBoot to Windows</string>
+    <string name="error_reason">Reason: %s</string>
     <string name="mount_error_default">Windows can\’t be mounted, probably missing partition</string>
     <string name="manual_reboot_toast">If you sure everything is right please reboot manually</string>
+
+    <string name="unknown_error">Unknown error</string>
+    <string name="no_browser">No browser found to open link</string>
+    <string name="navigate_back">Navigate back</string>
+    <string name="version_format">v%s</string>
 
 </resources>

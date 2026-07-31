@@ -7,19 +7,17 @@ import com.remtrik.m3khelper.R.string
 import com.remtrik.m3khelper.util.funcs.BootBackupState
 import com.remtrik.m3khelper.util.variables.DeviceStrings
 import com.remtrik.m3khelper.util.variables.device
-import com.remtrik.m3khelper.util.variables.BootIsPresent
-import com.remtrik.m3khelper.util.variables.WindowsIsPresent
-import com.remtrik.m3khelper.util.variables.dynamicVars
+import com.remtrik.m3khelper.util.variables.bootIsPresent
+import com.remtrik.m3khelper.util.variables.windowsIsPresent
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 
 class DeviceViewModel : ViewModel() {
     val uiState: StateFlow<DeviceStrings?> = combine(
-        BootIsPresent,
-        WindowsIsPresent,
+        bootIsPresent,
+        windowsIsPresent,
         device.panelType,
         device.currentDeviceCard
     ) { boot, windows, panel, card ->
@@ -50,9 +48,4 @@ class DeviceViewModel : ViewModel() {
         initialValue = null
     )
 
-    fun refreshStatus() {
-        viewModelScope.launch {
-            dynamicVars()
-        }
-    }
 }

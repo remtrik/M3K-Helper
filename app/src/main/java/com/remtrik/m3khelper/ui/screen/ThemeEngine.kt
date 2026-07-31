@@ -1,6 +1,5 @@
 package com.remtrik.m3khelper.ui.screen
 
-import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,7 +28,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.materialkolor.PaletteStyle
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
@@ -54,11 +53,12 @@ import com.remtrik.m3khelper.util.variables.LineHeight
 import com.remtrik.m3khelper.util.variables.PaddingValue
 import com.remtrik.m3khelper.util.variables.sdp
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Destination<RootGraph>
 @Composable
 fun ThemeEngineScreen(navigator: DestinationsNavigator) {
-    val themeState = observeThemeState()
+    val themeEngineEnable by AppSettings.themeEngineEnable.flow.collectAsStateWithLifecycle()
+    val themeEngineEnableMaterialU by AppSettings.themeEngineEnableMaterialU.flow.collectAsStateWithLifecycle()
+    val themeEnginePaletteStyle by AppSettings.themeEnginePaletteStyle.flow.collectAsStateWithLifecycle()
     val scrollState = rememberScrollState()
 
     Scaffold(
@@ -72,49 +72,45 @@ fun ThemeEngineScreen(navigator: DestinationsNavigator) {
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(top = innerPadding.calculateTopPadding())
                 .padding(horizontal = PaddingValue)
-                .fillMaxSize()
         ) {
-            ThemeSwitchItems(themeState)
-            PaletteSelector(themeState)
+            ThemeSwitchItems(
+                enableThemeEngine = themeEngineEnable,
+                enableMaterialU = themeEngineEnableMaterialU,
+                onThemeEngineChanged = {
+                    AppSettings.themeEngineEnable.update(it)
+                    if (it) {
+                        AppSettings.themeEngineEnableMaterialU.update(false)
+                    }
+                },
+                onMaterialUChanged = {
+                    AppSettings.themeEngineEnableMaterialU.update(it)
+                    if (it) {
+                        AppSettings.themeEngineEnable.update(false)
+                    }
+                }
+            )
+            PaletteSelector(
+                enableThemeEngine = themeEngineEnable,
+                paletteStyle = themeEnginePaletteStyle,
+                onPaletteStyleChanged = {
+                    AppSettings.themeEnginePaletteStyle.update(it)
+                }
+            )
         }
     }
 }
 
 @Composable
-private fun observeThemeState(): ThemeState {
-    val themeEngineEnable by AppSettings.themeEngineEnable.collectAsState()
-    val themeEngineEnableMaterialU by AppSettings.themeEngineEnableMaterialU.collectAsState()
-    val themeEnginePaletteStyle by AppSettings.themeEnginePaletteStyle.collectAsState()
-
-    return remember(themeEngineEnable, themeEngineEnableMaterialU, themeEnginePaletteStyle) {
-        ThemeState(
-            enableThemeEngine = themeEngineEnable,
-            enableMaterialU = themeEngineEnableMaterialU,
-            paletteStyle = themeEnginePaletteStyle,
-            onThemeEngineChanged = {
-                AppSettings.update("theme_engine_enable", it, AppSettings.themeEngineEnable)
-                if (it) {
-                    AppSettings.update("theme_engine_enable_materialu", false, AppSettings.themeEngineEnableMaterialU)
-                }
-            },
-            onMaterialUChanged = {
-                AppSettings.update("theme_engine_enable_materialu", it, AppSettings.themeEngineEnableMaterialU)
-                if (it) {
-                    AppSettings.update("theme_engine_enable", false, AppSettings.themeEngineEnable)
-                }
-            },
-            onPaletteStyleChanged = {
-                AppSettings.update("theme_engine_palette_style", it, AppSettings.themeEnginePaletteStyle)
-            }
-        )
-    }
-}
-
-@Composable
-private fun ThemeSwitchItems(themeState: ThemeState) {
+private fun ThemeSwitchItems(
+    enableThemeEngine: Boolean,
+    enableMaterialU: Boolean,
+    onThemeEngineChanged: (Boolean) -> Unit,
+    onMaterialUChanged: (Boolean) -> Unit
+) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -125,36 +121,43 @@ private fun ThemeSwitchItems(themeState: ThemeState) {
                 icon = Icons.Filled.Brush,
                 title = stringResource(R.string.enable_materialu),
                 summary = stringResource(R.string.enable_materialu_summary),
-                checked = themeState.enableMaterialU,
-                onCheckedChange = themeState.onMaterialUChanged
+                checked = enableMaterialU,
+                onCheckedChange = onMaterialUChanged
             )
             SwitchItem(
                 icon = Icons.Filled.FormatPaint,
                 title = stringResource(R.string.theme_engine_enable),
                 summary = stringResource(R.string.theme_engine_enable_summary),
-                checked = themeState.enableThemeEngine,
-                onCheckedChange = themeState.onThemeEngineChanged
+                checked = enableThemeEngine,
+                onCheckedChange = onThemeEngineChanged
             )
         }
     }
 }
 
 @Composable
-private fun PaletteSelector(themeState: ThemeState) {
+private fun PaletteSelector(
+    enableThemeEngine: Boolean,
+    paletteStyle: String?,
+    onPaletteStyleChanged: (String) -> Unit
+) {
     AnimatedVisibility(
-        visible = themeState.enableThemeEngine,
+        visible = enableThemeEngine,
         enter = expandTransition,
         exit = collapseTransition,
         modifier = Modifier
             .padding(PaddingValue)
             .fillMaxWidth()
     ) {
-        PaletteCard(themeState)
+        PaletteCard(paletteStyle, onPaletteStyleChanged)
     }
 }
 
 @Composable
-private fun PaletteCard(themeState: ThemeState) {
+private fun PaletteCard(
+    paletteStyle: String?,
+    onPaletteStyleChanged: (String) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
 
     Card(
@@ -163,9 +166,9 @@ private fun PaletteCard(themeState: ThemeState) {
     ) {
         PaletteDropdown(
             expanded = expanded,
-            paletteStyle = themeState.paletteStyle,
+            paletteStyle = paletteStyle,
             onExpandedChange = { expanded = it },
-            onPaletteStyleSelected = themeState.onPaletteStyleChanged
+            onPaletteStyleSelected = onPaletteStyleChanged
         )
         ColorPicker()
     }
@@ -174,10 +177,14 @@ private fun PaletteCard(themeState: ThemeState) {
 @Composable
 private fun PaletteDropdown(
     expanded: Boolean,
-    paletteStyle: String,
+    paletteStyle: String?,
     onExpandedChange: (Boolean) -> Unit,
     onPaletteStyleSelected: (String) -> Unit
 ) {
+    val otherStyles = remember(paletteStyle) {
+        PaletteStyle.entries.filter { it.name != paletteStyle }
+    }
+
     Box(modifier = Modifier.fillMaxWidth()) {
         OutlinedCard(
             onClick = { onExpandedChange(!expanded) },
@@ -196,12 +203,14 @@ private fun PaletteDropdown(
                     modifier = Modifier.size(25.sdp()),
                     tint = MaterialTheme.colorScheme.primary
                 )
-                Text(
-                    text = stringResource(R.string.theme_engine_current_palette, paletteStyle),
-                    modifier = Modifier.weight(1f),
-                    fontSize = FontSize,
-                    lineHeight = LineHeight
-                )
+                paletteStyle?.let {
+                    Text(
+                        text = stringResource(R.string.theme_engine_current_palette, it),
+                        modifier = Modifier.weight(1f),
+                        fontSize = FontSize,
+                        lineHeight = LineHeight
+                    )
+                }
                 Icon(
                     imageVector = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
                     contentDescription = null
@@ -214,32 +223,21 @@ private fun PaletteDropdown(
             onDismissRequest = { onExpandedChange(false) },
             modifier = Modifier.padding(PaddingValue)
         ) {
-            PaletteStyle.entries
-                .filterNot { it.name == paletteStyle }
-                .forEach { palette ->
-                    DropdownMenuItem(
-                        text = {
-                            Text(
-                                text = palette.name,
-                                fontSize = FontSize,
-                                lineHeight = LineHeight
-                            )
-                        },
-                        onClick = {
-                            onPaletteStyleSelected(palette.name)
-                            onExpandedChange(false)
-                        }
-                    )
-                }
+            otherStyles.forEach { palette ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = palette.name,
+                            fontSize = FontSize,
+                            lineHeight = LineHeight
+                        )
+                    },
+                    onClick = {
+                        onPaletteStyleSelected(palette.name)
+                        onExpandedChange(false)
+                    }
+                )
+            }
         }
     }
 }
-
-private data class ThemeState(
-    val enableThemeEngine: Boolean,
-    val enableMaterialU: Boolean,
-    val paletteStyle: String,
-    val onThemeEngineChanged: (Boolean) -> Unit,
-    val onMaterialUChanged: (Boolean) -> Unit,
-    val onPaletteStyleChanged: (String) -> Unit
-)

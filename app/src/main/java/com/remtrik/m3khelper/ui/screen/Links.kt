@@ -1,6 +1,5 @@
 package com.remtrik.m3khelper.ui.screen
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
@@ -18,7 +17,7 @@ import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,7 +37,6 @@ import com.remtrik.m3khelper.util.variables.PaddingValue
 import com.remtrik.m3khelper.util.variables.device
 import com.remtrik.m3khelper.util.variables.sdp
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Destination<RootGraph>()
 @Composable
 fun LinksScreen(navigator: DestinationsNavigator) {
@@ -66,7 +64,7 @@ private fun LinksContent(
     scrollState: ScrollState = rememberScrollState()
 ) {
     val spacing = 10.sdp()
-    val deviceCard by device.currentDeviceCard.collectAsState()
+    val deviceCard by device.currentDeviceCard.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
 
     Column(
@@ -129,6 +127,7 @@ private fun LinksColumn(
         content = content
     )
 }
+
 
 @Composable
 private fun FilesLinks(

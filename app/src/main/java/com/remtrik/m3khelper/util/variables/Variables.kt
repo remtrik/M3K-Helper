@@ -1,6 +1,7 @@
 package com.remtrik.m3khelper.util.variables
 
 import android.annotation.SuppressLint
+import android.content.SharedPreferences
 import android.os.Build
 import android.os.Environment
 import android.os.Parcelable
@@ -29,89 +30,146 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.parcelize.Parcelize
+import java.io.File
 
 private const val TAG = "M3K: Variables"
 
 @Parcelize
 data class UEFICard(var uefiPath: String, val uefiType: Int) : Parcelable
 
-@Parcelize
-data class DeviceCommands(var mountPath: String = "") : Parcelable
+class DeviceCommands(var mountPath: String = "")
 
-data class DeviceData(
+class DeviceData(
     val currentDeviceCard: MutableStateFlow<DeviceCard> = MutableStateFlow(unknownCard),
     val deviceCodenames: List<String> =
-        listOf(
+        listOfNotNull(
             Build.DEVICE,
             ShellUtils.fastCmd("getprop ro.product.device"),
             ShellUtils.fastCmd("getprop ro.lineage.device")
-        ).filter { it.isNotEmpty() }.distinct(),
+        ).distinct(),
     val savedDeviceCard: MutableStateFlow<DeviceCard> = MutableStateFlow(
-        deviceCardsArray.getOrNull(prefs.getInt("saved_device_card", 0))
-            ?: unknownCard
+        deviceCardsArray.getOrElse(prefs.getInt("saved_device_card", 0)) { unknownCard }
     ),
-    val overrideDeviceCard: MutableStateFlow<Boolean> =
-        MutableStateFlow(prefs.getBoolean("override_device", false)),
     val ram: String = getMemory(),
     val slot: String = ShellUtils.fastCmd("getprop ro.boot.slot_suffix"),
     val panelType: MutableStateFlow<String> = MutableStateFlow(
-        prefs.getString("saved_device_panel", string.unknown_panel.string()).toString()
+        prefs.getString("saved_device_panel", string.unknown_panel.string()).orEmpty()
     ),
     val uefiCards: MutableStateFlow<List<UEFICard>> = MutableStateFlow(emptyList()),
     val isSpecial: MutableStateFlow<Boolean> = MutableStateFlow(false),
 )
 
-private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+val appScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 val device: DeviceData by lazy { DeviceData() }
 
 val SDCARD_PATH: String by lazy { Environment.getExternalStorageDirectory().path }
-//const val SDCARD_PATH: String = "/sdcard"
 
-object AppSettings {
-    val checkUpdate = MutableStateFlow(prefs.getBoolean("check_update", true))
-    val forceRotation = MutableStateFlow(prefs.getBoolean("force_rotation", false))
-    val overrideDevice = MutableStateFlow(prefs.getBoolean("override_device", false))
-    val overridenDeviceName = MutableStateFlow(prefs.getString("overriden_device_name", "Poco X3 Pro") ?: "Poco X3 Pro")
-    val overridenDeviceCodename = MutableStateFlow(prefs.getString("overriden_device_codename", "vayu") ?: "vayu")
+class PrefSetting<T>(
+    private val key: String,
+    private val default: T,
+    private val read: SharedPreferences.(String, T) -> T,
+    private val write: SharedPreferences.Editor.(String, T) -> Unit
+) {
+    val flow: MutableStateFlow<T> = MutableStateFlow(
+        with(prefs) { read(key, default) }
+    )
 
-    // Theme Settings
-    val themeEngineEnable = MutableStateFlow(prefs.getBoolean("theme_engine_enable", false))
-    val themeEngineEnableMaterialU = MutableStateFlow(prefs.getBoolean("theme_engine_enable_materialu", true))
-    val themeEnginePaletteStyle = MutableStateFlow(prefs.getString("theme_engine_palette_style", "TonalSpot") ?: "TonalSpot")
-    val themeEngineColorR = MutableStateFlow(prefs.getFloat("theme_engine_color_R", 0f))
-    val themeEngineColorG = MutableStateFlow(prefs.getFloat("theme_engine_color_G", 0f))
-    val themeEngineColorB = MutableStateFlow(prefs.getFloat("theme_engine_color_B", 0f))
-
-    fun <T> update(key: String, value: T, flow: MutableStateFlow<T>) {
+    fun update(value: T) {
         flow.value = value
         appScope.launch(Dispatchers.IO) {
-            prefs.edit {
-                when (value) {
-                    is Boolean -> putBoolean(key, value)
-                    is String -> putString(key, value)
-                    is Float -> putFloat(key, value)
-                    is Int -> putInt(key, value)
-                }
-            }
+            prefs.edit { write(key, value) }
         }
     }
 
-    fun <T> liveUpdate(value: T, flow: MutableStateFlow<T>) {
-        flow.value = value
-    }
+    operator fun component1(): T = flow.value
+}
+
+object AppSettings {
+    val checkUpdate: PrefSetting<Boolean> = PrefSetting(
+        "check_update",
+        true,
+        SharedPreferences::getBoolean,
+        SharedPreferences.Editor::putBoolean
+    )
+    val forceRotation: PrefSetting<Boolean> = PrefSetting(
+        "force_rotation",
+        false,
+        SharedPreferences::getBoolean,
+        SharedPreferences.Editor::putBoolean
+    )
+    val overrideDevice: PrefSetting<Boolean> = PrefSetting(
+        "override_device",
+        false,
+        SharedPreferences::getBoolean,
+        SharedPreferences.Editor::putBoolean
+    )
+    val overriddenDeviceName: PrefSetting<String?> = PrefSetting(
+        "overridden_device_name",
+        "Poco X3 Pro",
+        SharedPreferences::getString,
+        SharedPreferences.Editor::putString
+    )
+    val overriddenDeviceCodename: PrefSetting<String?> = PrefSetting(
+        "overridden_device_codename",
+        "vayu",
+        SharedPreferences::getString,
+        SharedPreferences.Editor::putString
+    )
+
+    // Theme Settings
+    val themeEngineEnable: PrefSetting<Boolean> = PrefSetting(
+        "theme_engine_enable",
+        false,
+        SharedPreferences::getBoolean,
+        SharedPreferences.Editor::putBoolean
+    )
+    val themeEngineEnableMaterialU: PrefSetting<Boolean> = PrefSetting(
+        "theme_engine_enable_materialu",
+        true,
+        SharedPreferences::getBoolean,
+        SharedPreferences.Editor::putBoolean
+    )
+    val themeEnginePaletteStyle: PrefSetting<String?> = PrefSetting(
+        "theme_engine_palette_style",
+        "TonalSpot",
+        SharedPreferences::getString,
+        SharedPreferences.Editor::putString
+    )
+    val themeEngineColorR: PrefSetting<Float> = PrefSetting(
+        "theme_engine_color_R",
+        0f,
+        SharedPreferences::getFloat,
+        SharedPreferences.Editor::putFloat
+    )
+    val themeEngineColorG: PrefSetting<Float> = PrefSetting(
+        "theme_engine_color_G",
+        0f,
+        SharedPreferences::getFloat,
+        SharedPreferences.Editor::putFloat
+    )
+    val themeEngineColorB: PrefSetting<Float> = PrefSetting(
+        "theme_engine_color_B",
+        0f,
+        SharedPreferences::getFloat,
+        SharedPreferences.Editor::putFloat
+    )
 }
 
 val currentDeviceCommands: DeviceCommands by lazy { DeviceCommands() }
 
 // UI State
-val BootIsPresent = MutableStateFlow(BootBackupState.NONE)
-val WindowsIsPresent = MutableStateFlow(string.no)
-val showWarningCard = MutableStateFlow(true)
-val commandError = MutableStateFlow("")
-val showBootBackupErrorDialog = MutableStateFlow(false)
-val showMountErrorDialog = MutableStateFlow(false)
-val showQuickBootErrorDialog = MutableStateFlow(false)
+val bootIsPresent: MutableStateFlow<BootBackupState> = MutableStateFlow(BootBackupState.NONE)
+val windowsIsPresent: MutableStateFlow<Int> = MutableStateFlow(string.no)
+val showWarningCard: MutableStateFlow<Boolean> = MutableStateFlow(true)
+
+data class CommandError(
+    val type: ErrorType,
+    val title: String,
+    val message: String
+)
+
+val commandError: MutableStateFlow<CommandError?> = MutableStateFlow(null)
 
 val commandHandler: Commands = object : Commands() {}
 
@@ -137,13 +195,6 @@ fun vars() {
             fastLoadSavedDevice()
         }
 
-        // TODO: Examine the OS behavior with different paths
-        /*CurrentDeviceCommands.mountPath = when {
-        ShellUtils.fastCmd("find /mnt/pass_through -maxdepth 0")
-            .isNotEmpty() -> "/mnt/pass_through/0/emulated/0" // passthrough+getExternalStorageDirectory maybe?
-        else -> Environment.getExternalStorageDirectory().path
-    }*/
-
         currentDeviceCommands.mountPath = SDCARD_PATH
 
         dynamicVars()
@@ -155,46 +206,37 @@ fun vars() {
 }
 
 fun fetchDeviceCard() {
-    var tmp = 0
-    deviceCardsArray
-        .find { card ->
-            card.deviceCodename.any { deviceCodename ->
-                device.deviceCodenames.any { normalizedCodename -> normalizedCodename == deviceCodename }
-            }
-        }?.let { card -> updateDeviceCard(deviceCardsArray.indexOf(card), card); tmp = 1 }
-    if (tmp != 1) { // fallback to at least somewhat close device if cant find the exact match
-        deviceCardsArray
-            .find { card -> card.deviceCodename.any { device.deviceCodenames.contains(it) } }
-            ?.let { card ->
-                updateDeviceCard(deviceCardsArray.indexOf(card), card)
-            }
+    val codenames = device.deviceCodenames
+    val match = deviceCardsArray.find { card ->
+        card.deviceCodename.any { it in codenames }
+    }
+    if (match != null) {
+        updateDeviceCard(deviceCardsArray.indexOf(match), match)
     }
 }
 
 private fun updateDeviceCard(cardNum: Int, card: DeviceCard) {
     device.currentDeviceCard.value = card
+    device.savedDeviceCard.value = card
+    device.isSpecial.value = card in specialDeviceCardsArray
+    showWarningCard.value = false
     prefs.edit {
         putInt("saved_device_card", cardNum)
         putBoolean("firstboot", false)
         putBoolean("unknown", false)
     }
-    device.savedDeviceCard.value = card
-    isSpecial(card)
-    showWarningCard.value = false
 }
 
-fun fastLoadSavedDevice(override: Boolean = AppSettings.overrideDevice.value) {
+fun fastLoadSavedDevice(override: Boolean = AppSettings.overrideDevice.flow.value) {
     device.currentDeviceCard.value = if (override) {
         deviceCardsArray.find {
-            it.deviceCodename.contains(
-                AppSettings.overridenDeviceCodename.value
-            )
+            it.deviceCodename.contains(AppSettings.overriddenDeviceCodename.flow.value)
         } ?: device.savedDeviceCard.value
     } else {
         device.savedDeviceCard.value
     }
     if (device.panelType.value == string.unknown_panel.string()) getPanel()
-    isSpecial(device.currentDeviceCard.value)
+    device.isSpecial.value = device.currentDeviceCard.value in specialDeviceCardsArray
     showWarningCard.value = false
 }
 
@@ -203,6 +245,10 @@ private fun getPanel() {
         getPanelNative().takeUnless { it == "Invalid" } ?: string.unknown_panel.string()
     prefs.edit { putString("saved_device_panel", device.panelType.value) }
 }
+
+private val samsungPanelMarkers = listOf("samsung", "ea8076", "s6e3fc3", "ams646yd01")
+private val huaxingPanelMarkers = listOf("j20s_42", "k82_42", "huaxing")
+private val tianmaPanelMarkers = listOf("j20s_36", "tianma", "k82_36")
 
 fun getPanelNative(): String {
     val cmdline = ShellUtils.fastCmd("cat /proc/cmdline")
@@ -214,9 +260,9 @@ fun getPanelNative(): String {
         .lowercase()
 
     return when {
-        listOf("samsung", "ea8076", "s6e3fc3", "ams646yd01").any { panelInfo.contains(it) } -> "Samsung"
-        listOf("j20s_42", "k82_42", "huaxing").any { panelInfo.contains(it) } -> "Huaxing"
-        listOf("j20s_36", "tianma", "k82_36").any { panelInfo.contains(it) } -> "Tianma"
+        samsungPanelMarkers.any { panelInfo.contains(it) } -> "Samsung"
+        huaxingPanelMarkers.any { panelInfo.contains(it) } -> "Huaxing"
+        tianmaPanelMarkers.any { panelInfo.contains(it) } -> "Tianma"
         panelInfo.contains("ebbg") -> "EBBG"
         else -> "Invalid"
     }
@@ -226,10 +272,10 @@ fun bootBackupStatus(forceMount: Boolean = true) {
     appScope.launch {
         if (forceMount) {
             commandHandler.withMountedWindows(ErrorType.MOUNT_ERROR) {
-                BootIsPresent.value = checkBootImages(device.currentDeviceCard.value.noMount)
+                bootIsPresent.value = checkBootImages(device.currentDeviceCard.value.noMount)
             }
         } else {
-            BootIsPresent.value = checkBootImages(device.currentDeviceCard.value.noMount)
+            bootIsPresent.value = checkBootImages(device.currentDeviceCard.value.noMount)
         }
     }
 }
@@ -237,16 +283,13 @@ fun bootBackupStatus(forceMount: Boolean = true) {
 fun dynamicVars() {
     appScope.launch {
         commandHandler.withMountedWindows(ErrorType.MOUNT_ERROR) {
-            WindowsIsPresent.value = when {
-                ShellUtils.fastCmd("find ${SDCARD_PATH}/Windows/Windows/explorer.exe")
-                    .isNotEmpty() -> string.yes
-
-                else -> string.no
-            }
-            BootIsPresent.value = checkBootImages(device.currentDeviceCard.value.noMount)
+            windowsIsPresent.value = if (
+                File("$SDCARD_PATH/Windows/Windows/explorer.exe").exists()
+            ) string.yes else string.no
+            bootIsPresent.value = checkBootImages(device.currentDeviceCard.value.noMount)
         }
         if (device.uefiCards.value.isEmpty()) {
-            val find = Shell.cmd("find /mnt/sdcard/UEFI/ -type f | grep .img").exec()
+            val find = Shell.cmd("find /mnt/sdcard/UEFI/ -type f -name '*.img'").exec()
             if (find.isSuccess && device.uefiCards.value.isEmpty()) {
                 device.uefiCards.value = find.out
                     .filter { it.contains("hz") }
@@ -265,24 +308,14 @@ fun dynamicVars() {
 }
 
 fun checkBootImages(noMount: Boolean): BootBackupState {
-
-    val check = ShellUtils.fastCmd(
-        "if [ -f $SDCARD_PATH/boot.img ]; then echo -n 'A'; fi; " +
-                "if [ -f $SDCARD_PATH/Windows/boot.img ]; then echo -n 'W'; fi"
-    )
-
-    val androidExists = check.contains('A')
-    val windowsExists = check.contains('W')
+    val androidExists = File("$SDCARD_PATH/boot.img").exists()
+    val windowsExists = File("$SDCARD_PATH/Windows/boot.img").exists()
 
     return when {
         !noMount && windowsExists -> if (androidExists) BootBackupState.BOTH else BootBackupState.WINDOWS
         androidExists -> BootBackupState.ANDROID
         else -> BootBackupState.NONE
     }
-}
-
-private fun isSpecial(card: DeviceCard) {
-    device.isSpecial.value = specialDeviceCardsArray.contains(card)
 }
 
 data class DeviceStrings(
@@ -298,17 +331,17 @@ data class DeviceStrings(
 @SuppressLint("LogConditional")
 private fun debugLog() {
     Log.i(TAG, "First Boot: $firstBoot")
-    Log.i(TAG, "Boot is present: ${BootIsPresent.value}")
-    Log.i(TAG, "Windows is present: ${WindowsIsPresent.value.string()}")
+    Log.i(TAG, "Boot is present: ${bootIsPresent.value}")
+    Log.i(TAG, "Windows is present: ${windowsIsPresent.value.string()}")
     Log.i(TAG, "Panel Type: ${device.panelType.value}")
     device.deviceCodenames
         .filter { it.isNotEmpty() }
         .forEach { Log.i(TAG, "Device codename: $it") }
     Log.i(TAG, "Current device: ${device.currentDeviceCard.value.deviceName}")
     Log.i(TAG, "Saved device: ${device.savedDeviceCard.value.deviceName}")
-    Log.i(TAG, "Override device enabled: ${AppSettings.overrideDevice.value}")
-    if (AppSettings.overrideDevice.value) {
-        Log.i(TAG, "Override device codename: ${AppSettings.overridenDeviceCodename.value}")
+    Log.i(TAG, "Override device enabled: ${AppSettings.overrideDevice.flow.value}")
+    if (AppSettings.overrideDevice.flow.value) {
+        Log.i(TAG, "Override device codename: ${AppSettings.overriddenDeviceCodename.flow.value}")
     }
     Log.i(TAG, "Current mount path: ${currentDeviceCommands.mountPath}")
 }

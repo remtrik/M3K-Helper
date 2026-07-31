@@ -40,7 +40,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -196,7 +196,7 @@ internal fun M3KRootContent() {
                             }
                     }
                 )
-                val isWarningVisible by showWarningCard.collectAsState()
+                val isWarningVisible by showWarningCard.collectAsStateWithLifecycle()
                 if (isWarningVisible) {
                     UnknownDevice()
                 }
@@ -214,7 +214,7 @@ internal fun M3KRootContent() {
 
 @Composable
 private fun getVisibleDestinations(): List<Destinations> {
-    val currentDeviceCard by device.currentDeviceCard.collectAsState()
+    val currentDeviceCard by device.currentDeviceCard.collectAsStateWithLifecycle()
     return remember(currentDeviceCard) {
         Destinations.entries.filter { destination ->
             !(currentDeviceCard.noLinks && destination.route == LinksScreenDestination)

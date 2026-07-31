@@ -27,11 +27,6 @@ class M3KHelperApplication : Application() {
         Shell.setDefaultBuilder(
             Shell.Builder.create().setFlags(Shell.FLAG_REDIRECT_STDERR).setTimeout(10)
         )
-        //GMNT_SHELL = Shell.Builder.create().build("su")
-        //SHELL = Shell.Builder.create().build("su", "-mm")
-        Shell.getShell()
-        val isrooted = Shell.isAppGrantedRoot()
-        if (isrooted == true) vars()
         okhttpClient =
             OkHttpClient.Builder().cache(Cache(File(cacheDir, "okhttp"), 10 * 1024 * 1024))
                 .addInterceptor { block ->
@@ -41,5 +36,9 @@ class M3KHelperApplication : Application() {
                             .header("Accept-Language", Locale.getDefault().toLanguageTag()).build()
                     )
                 }.build()
+        Thread {
+            Shell.getShell()
+            if (Shell.isAppGrantedRoot() == true) vars()
+        }.start()
     }
 }

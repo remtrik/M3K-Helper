@@ -1,6 +1,5 @@
 package com.remtrik.m3khelper.ui.screen
 
-import android.annotation.SuppressLint
 import android.content.res.Configuration
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
@@ -27,14 +26,17 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AboutCardDestination
@@ -45,9 +47,8 @@ import com.remtrik.m3khelper.R
 import com.remtrik.m3khelper.ui.component.ButtonItem
 import com.remtrik.m3khelper.ui.component.CommonTopAppBar
 import com.remtrik.m3khelper.ui.component.SwitchItem
-import com.remtrik.m3khelper.util.beyond1Card
+import com.remtrik.m3khelper.util.DeviceCard
 import com.remtrik.m3khelper.util.collapseTransition
-import com.remtrik.m3khelper.util.debugCard
 import com.remtrik.m3khelper.util.deviceCardsArray
 import com.remtrik.m3khelper.util.expandTransition
 import com.remtrik.m3khelper.util.unknownCard
@@ -59,24 +60,11 @@ import com.remtrik.m3khelper.util.variables.device
 import com.remtrik.m3khelper.util.variables.fastLoadSavedDevice
 import com.remtrik.m3khelper.util.variables.sdp
 
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Destination<RootGraph>
 @Composable
 fun SettingsScreen(navigator: DestinationsNavigator) {
     val scrollState = rememberScrollState()
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-
-    val isSpecial by device.isSpecial.collectAsState()
-
-    val checkUpdate by AppSettings.checkUpdate.collectAsState()
-    val forceRotation by AppSettings.forceRotation.collectAsState()
-    val overrideDevice by AppSettings.overrideDevice.collectAsState()
-    val overridenDeviceName by AppSettings.overridenDeviceName.collectAsState()
-
-    val currentDeviceCard by device.currentDeviceCard.collectAsState()
-    val savedDeviceCard by device.savedDeviceCard.collectAsState()
-
-    var expanded by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -89,10 +77,10 @@ fun SettingsScreen(navigator: DestinationsNavigator) {
     ) { innerPadding ->
         Column(
             modifier = Modifier
+                .fillMaxSize()
                 .verticalScroll(scrollState)
                 .padding(top = innerPadding.calculateTopPadding())
-                .padding(horizontal = PaddingValue)
-                .fillMaxSize(),
+                .padding(horizontal = PaddingValue),
             verticalArrangement = Arrangement.spacedBy(PaddingValue)
         ) {
             ElevatedCard(modifier = Modifier.fillMaxWidth()) {
@@ -107,118 +95,8 @@ fun SettingsScreen(navigator: DestinationsNavigator) {
 
             ElevatedCard(modifier = Modifier.fillMaxWidth()) {
                 Column {
-                    SwitchItem(
-                        icon = Icons.Filled.Update,
-                        title = stringResource(R.string.autoupdate),
-                        summary = stringResource(R.string.autoupdate_summary),
-                        checked = checkUpdate
-                    ) {
-                        AppSettings.update("check_update", it, AppSettings.checkUpdate)
-                    }
-                    SwitchItem(
-                        icon = Icons.Filled.DevicesOther,
-                        title = stringResource(R.string.override_device),
-                        summary = stringResource(R.string.override_device_summary),
-                        checked = overrideDevice
-                    ) {
-                        AppSettings.update("override_device", it, AppSettings.overrideDevice)
-                        fastLoadSavedDevice(it)
-                    }
-
-                    AnimatedVisibility(
-                        visible = overrideDevice,
-                        enter = expandTransition,
-                        exit = collapseTransition,
-                    ) {
-                        Column(modifier = Modifier.padding(PaddingValue)) {
-                            OutlinedCard(
-                                onClick = { expanded = !expanded },
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .padding(PaddingValue)
-                                        .fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.spacedBy(10.sdp()),
-                                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = stringResource(R.string.device, overridenDeviceName),
-                                        modifier = Modifier.weight(1f),
-                                        fontSize = FontSize,
-                                        lineHeight = LineHeight
-                                    )
-                                    Icon(
-                                        imageVector = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false },
-                                modifier = Modifier
-                                    .padding(PaddingValue)
-                                    .width(250.sdp())
-                            ) {
-                                deviceCardsArray
-                                    .filterNot {
-                                        it in listOf(
-                                            beyond1Card,
-                                            debugCard,
-                                            unknownCard,
-                                            savedDeviceCard,
-                                            currentDeviceCard
-                                        )
-                                    }
-                                    .forEach {
-                                        DropdownMenuItem(
-                                            text = {
-                                                Text(
-                                                    text = it.deviceName,
-                                                    fontSize = FontSize,
-                                                    lineHeight = LineHeight
-                                                )
-                                            },
-                                            onClick = {
-                                                expanded = false
-                                                AppSettings.update(
-                                                    "overriden_device_codename",
-                                                    it.deviceCodename[0],
-                                                    AppSettings.overridenDeviceCodename
-                                                )
-                                                AppSettings.update(
-                                                    "overriden_device_name",
-                                                    it.deviceName,
-                                                    AppSettings.overridenDeviceName
-                                                )
-                                                fastLoadSavedDevice(true)
-                                            }
-                                        )
-                                    }
-                            }
-                        }
-                    }
-                    AnimatedVisibility(
-                        visible = !isSpecial,
-                        enter = expandTransition,
-                        exit = collapseTransition,
-                    ) {
-                        ElevatedCard(modifier = Modifier.fillMaxWidth()) {
-                            SwitchItem(
-                                icon = R.drawable.ic_rotation,
-                                title = stringResource(R.string.force_rotation),
-                                summary = stringResource(R.string.force_rotation_summary),
-                                checked = forceRotation
-                            ) {
-                                AppSettings.update("force_rotation", it, AppSettings.forceRotation)
-                                if (it) M3KApp.resources.configuration.orientation =
-                                    Configuration.ORIENTATION_UNDEFINED
-                                else Configuration.ORIENTATION_PORTRAIT
-                            }
-                        }
-                    }
-
+                    AutoUpdateSetting()
+                    DeviceOverrideSetting()
                 }
             }
 
@@ -230,5 +108,153 @@ fun SettingsScreen(navigator: DestinationsNavigator) {
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun AutoUpdateSetting() {
+    val checkUpdate by AppSettings.checkUpdate.flow.collectAsStateWithLifecycle()
+    SwitchItem(
+        icon = Icons.Filled.Update,
+        title = stringResource(R.string.autoupdate),
+        summary = stringResource(R.string.autoupdate_summary),
+        checked = checkUpdate
+    ) {
+        AppSettings.checkUpdate.update(it)
+    }
+}
+
+@Composable
+private fun DeviceOverrideSetting() {
+    val isSpecial by device.isSpecial.collectAsStateWithLifecycle()
+    val overrideDevice by AppSettings.overrideDevice.flow.collectAsStateWithLifecycle()
+    val overriddenDeviceName by AppSettings.overriddenDeviceName.flow.collectAsStateWithLifecycle()
+    val currentDeviceCard by device.currentDeviceCard.collectAsStateWithLifecycle()
+    val savedDeviceCard by device.savedDeviceCard.collectAsStateWithLifecycle()
+
+    SwitchItem(
+        icon = Icons.Filled.DevicesOther,
+        title = stringResource(R.string.override_device),
+        summary = stringResource(R.string.override_device_summary),
+        checked = overrideDevice
+    ) {
+        AppSettings.overrideDevice.update(it)
+        fastLoadSavedDevice(it)
+    }
+
+    AnimatedVisibility(
+        visible = overrideDevice,
+        enter = expandTransition,
+        exit = collapseTransition,
+    ) {
+        DeviceDropdown(
+            overriddenDeviceName = overriddenDeviceName,
+            currentDeviceCard = currentDeviceCard,
+            savedDeviceCard = savedDeviceCard,
+            onDeviceSelected = { card ->
+                AppSettings.overriddenDeviceCodename.update(card.deviceCodename[0])
+                AppSettings.overriddenDeviceName.update(card.deviceName)
+                fastLoadSavedDevice(true)
+            }
+        )
+    }
+
+    AnimatedVisibility(
+        visible = !isSpecial,
+        enter = expandTransition,
+        exit = collapseTransition,
+    ) {
+        ForceRotationSetting()
+    }
+}
+
+@Composable
+private fun DeviceDropdown(
+    overriddenDeviceName: String?,
+    currentDeviceCard: DeviceCard,
+    savedDeviceCard: DeviceCard,
+    onDeviceSelected: (DeviceCard) -> Unit
+) {
+    var expanded by rememberSaveable { mutableStateOf(false) }
+
+    val excludeDevices = remember(currentDeviceCard, savedDeviceCard) {
+        setOf(unknownCard, currentDeviceCard, savedDeviceCard)
+    }
+    val availableDevices = remember(excludeDevices) {
+        deviceCardsArray.filter { it !in excludeDevices }
+    }
+
+    Column(modifier = Modifier.padding(PaddingValue)) {
+        OutlinedCard(
+            onClick = { expanded = !expanded },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(PaddingValue)
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.sdp()),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                overriddenDeviceName?.let {
+                    Text(
+                        text = stringResource(R.string.device, it),
+                        modifier = Modifier.weight(1f),
+                        fontSize = FontSize,
+                        lineHeight = LineHeight
+                    )
+                }
+                Icon(
+                    imageVector = if (expanded) Icons.Filled.ArrowDropUp else Icons.Filled.ArrowDropDown,
+                    contentDescription = null
+                )
+            }
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+            modifier = Modifier
+                .padding(PaddingValue)
+                .width(250.sdp())
+        ) {
+            availableDevices.forEach { card ->
+                DropdownMenuItem(
+                    text = {
+                        Text(
+                            text = card.deviceName,
+                            fontSize = FontSize,
+                            lineHeight = LineHeight
+                        )
+                    },
+                    onClick = {
+                        expanded = false
+                        onDeviceSelected(card)
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ForceRotationSetting() {
+    val forceRotation by AppSettings.forceRotation.flow.collectAsStateWithLifecycle()
+
+    LaunchedEffect(forceRotation) {
+        M3KApp.resources.configuration.orientation = if (forceRotation) {
+            Configuration.ORIENTATION_UNDEFINED
+        } else {
+            Configuration.ORIENTATION_PORTRAIT
+        }
+    }
+
+    SwitchItem(
+        icon = R.drawable.ic_rotation,
+        title = stringResource(R.string.force_rotation),
+        summary = stringResource(R.string.force_rotation_summary),
+        checked = forceRotation
+    ) {
+        AppSettings.forceRotation.update(it)
     }
 }

@@ -31,6 +31,7 @@ import com.remtrik.m3khelper.BuildConfig
 import com.remtrik.m3khelper.R.drawable.ic_windows
 import com.remtrik.m3khelper.R.string.app_name
 import com.remtrik.m3khelper.R.string.source
+import com.remtrik.m3khelper.R.string.version_format
 import com.remtrik.m3khelper.util.variables.FontSize
 import com.remtrik.m3khelper.util.variables.LineHeight
 import com.remtrik.m3khelper.util.variables.sdp
@@ -66,7 +67,7 @@ fun AboutCard() {
                         lineHeight = LineHeight
                     )
                     Text(
-                        "v${BuildConfig.VERSION_NAME}",
+                        stringResource(version_format, BuildConfig.VERSION_NAME),
                         fontSize = FontSize,
                         lineHeight = LineHeight
                     )

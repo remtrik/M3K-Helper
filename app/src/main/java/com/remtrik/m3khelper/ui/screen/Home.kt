@@ -19,7 +19,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.ramcosta.composedestinations.annotation.Destination
@@ -40,9 +39,6 @@ import com.remtrik.m3khelper.util.variables.PaddingValue
 import com.remtrik.m3khelper.util.variables.commandError
 import com.remtrik.m3khelper.util.variables.device
 import com.remtrik.m3khelper.util.variables.sdp
-import com.remtrik.m3khelper.util.variables.showBootBackupErrorDialog
-import com.remtrik.m3khelper.util.variables.showMountErrorDialog
-import com.remtrik.m3khelper.util.variables.showQuickBootErrorDialog
 
 @Destination<RootGraph>(start = true)
 @Composable
@@ -51,11 +47,7 @@ fun HomeScreen(navigator: DestinationsNavigator) {
     val scrollState = rememberScrollState()
 
     val deviceCard by device.currentDeviceCard.collectAsStateWithLifecycle()
-
-    val bootError by showBootBackupErrorDialog.collectAsStateWithLifecycle()
-    val mountError by showMountErrorDialog.collectAsStateWithLifecycle()
-    val quickBootError by showQuickBootErrorDialog.collectAsStateWithLifecycle()
-    val commandErrorText by commandError.collectAsStateWithLifecycle()
+    val error by commandError.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -104,12 +96,14 @@ fun HomeScreen(navigator: DestinationsNavigator) {
             }
         }
 
-        ErrorDialogs(
-            bootErrorVisible = bootError,
-            mountErrorVisible = mountError,
-            quickBootErrorVisible = quickBootError,
-            errorText = commandErrorText
-        )
+        error?.let { err ->
+            ErrorDialog(
+                title = err.title,
+                description = err.message,
+                showDialog = true,
+                onDismiss = { commandError.value = null }
+            )
+        }
     }
 }
 
@@ -127,39 +121,4 @@ private fun DeviceInfo(modifier: Modifier) {
     val viewModel: DeviceViewModel = viewModel()
     DeviceImage(modifier)
     InfoCard(modifier, viewModel)
-}
-
-@Composable
-private fun ErrorDialogs(
-    bootErrorVisible: Boolean,
-    mountErrorVisible: Boolean,
-    quickBootErrorVisible: Boolean,
-    errorText: String
-) {
-    if (bootErrorVisible) {
-        ErrorDialog(
-            title = stringResource(R.string.backupboot_error),
-            description = stringResource(R.string.error_reason, errorText),
-            showDialog = true,
-            onDismiss = { showBootBackupErrorDialog.value = false }
-        )
-    }
-
-    if (mountErrorVisible) {
-        ErrorDialog(
-            title = "Failed to mount/unmount Windows",
-            description = stringResource(R.string.error_reason, errorText),
-            showDialog = true,
-            onDismiss = { showMountErrorDialog.value = false }
-        )
-    }
-
-    if (quickBootErrorVisible) {
-        ErrorDialog(
-            title = "Failed to QuickBoot to Windows",
-            description = stringResource(R.string.error_reason, errorText),
-            showDialog = true,
-            onDismiss = { showQuickBootErrorDialog.value = false }
-        )
-    }
 }

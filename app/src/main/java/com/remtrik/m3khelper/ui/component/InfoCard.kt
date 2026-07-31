@@ -12,7 +12,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -35,11 +34,12 @@ fun InfoCard(
     viewModel: DeviceViewModel = viewModel()
 ) {
     val deviceStrings by viewModel.uiState.collectAsStateWithLifecycle()
+    val isSpecial by device.isSpecial.collectAsStateWithLifecycle()
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     ElevatedCard(
         modifier =
-            if (device.isSpecial.collectAsState().value && !isLandscape) {
+            if (isSpecial && !isLandscape) {
                 modifier
             } else {
                 Modifier

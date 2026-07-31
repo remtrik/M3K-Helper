@@ -17,7 +17,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,9 +32,9 @@ import com.remtrik.m3khelper.util.variables.sdp
 
 @Composable
 fun ColorPicker() {
-    val red by AppSettings.themeEngineColorR.collectAsState()
-    val green by AppSettings.themeEngineColorG.collectAsState()
-    val blue by AppSettings.themeEngineColorB.collectAsState()
+    val red by AppSettings.themeEngineColorR.flow.collectAsStateWithLifecycle()
+    val green by AppSettings.themeEngineColorG.flow.collectAsStateWithLifecycle()
+    val blue by AppSettings.themeEngineColorB.flow.collectAsStateWithLifecycle()
 
     val targetColor = remember(red, green, blue) {
         Color(red, green, blue, 1f)
@@ -83,10 +83,10 @@ private fun ColorSliders(
             label = "R",
             value = red,
             onValueChange = {
-                AppSettings.liveUpdate(it, AppSettings.themeEngineColorR)
+                AppSettings.themeEngineColorR.flow.value = it
             },
             onValueChangeFinished = {
-                AppSettings.update("theme_engine_color_R", red, AppSettings.themeEngineColorR)
+                AppSettings.themeEngineColorR.update(red)
             },
             color = Color.Red
         )
@@ -94,10 +94,10 @@ private fun ColorSliders(
             label = "G",
             value = green,
             onValueChange = {
-                AppSettings.liveUpdate(it, AppSettings.themeEngineColorG)
+                AppSettings.themeEngineColorG.flow.value = it
             },
             onValueChangeFinished = {
-                AppSettings.update("theme_engine_color_G", green, AppSettings.themeEngineColorG)
+                AppSettings.themeEngineColorG.update(green)
             },
             color = Color.Green
         )
@@ -105,10 +105,10 @@ private fun ColorSliders(
             label = "B",
             value = blue,
             onValueChange = {
-                AppSettings.liveUpdate(it, AppSettings.themeEngineColorB)
+                AppSettings.themeEngineColorB.flow.value = it
             },
             onValueChangeFinished = {
-                AppSettings.update("theme_engine_color_B", blue, AppSettings.themeEngineColorB)
+                AppSettings.themeEngineColorB.update(blue)
             },
             color = Color.Blue
         )

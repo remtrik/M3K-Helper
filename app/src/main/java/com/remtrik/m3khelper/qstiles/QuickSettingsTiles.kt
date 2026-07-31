@@ -14,12 +14,14 @@ import com.remtrik.m3khelper.util.variables.firstBoot
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 abstract class CommonTileService : TileService() {
-    protected val serviceScope = CoroutineScope(Dispatchers.Main + Job())
+    protected val serviceScope: CoroutineScope = CoroutineScope(Dispatchers.Main + Job())
 
     override fun onDestroy() {
+        serviceScope.cancel()
         super.onDestroy()
     }
 
