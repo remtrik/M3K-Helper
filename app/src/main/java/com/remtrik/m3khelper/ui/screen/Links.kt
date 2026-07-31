@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Message
 import androidx.compose.material.icons.filled.Book
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -44,7 +43,6 @@ import com.remtrik.m3khelper.util.variables.sdp
 @Composable
 fun LinksScreen(navigator: DestinationsNavigator) {
     val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val scrollState = rememberScrollState()
 
     Scaffold(
         topBar = {
@@ -56,7 +54,6 @@ fun LinksScreen(navigator: DestinationsNavigator) {
     ) { innerPadding ->
         LinksContent(
             isLandscape = isLandscape,
-            scrollState = scrollState,
             innerPadding = innerPadding
         )
     }
@@ -65,23 +62,23 @@ fun LinksScreen(navigator: DestinationsNavigator) {
 @Composable
 private fun LinksContent(
     isLandscape: Boolean,
-    scrollState: ScrollState,
-    innerPadding: PaddingValues
+    innerPadding: PaddingValues,
+    scrollState: ScrollState = rememberScrollState()
 ) {
     val spacing = 10.sdp()
     val deviceCard by device.currentDeviceCard.collectAsState()
     val uriHandler = LocalUriHandler.current
 
     Column(
-        verticalArrangement = Arrangement.spacedBy(10.sdp()),
+        verticalArrangement = Arrangement.spacedBy(spacing),
         modifier = Modifier
+            .fillMaxSize()
             .verticalScroll(scrollState)
             .padding(
                 top = innerPadding.calculateTopPadding(),
                 start = PaddingValue,
                 end = PaddingValue
             )
-            .fillMaxSize()
     ) {
         if (isLandscape) {
             LandscapeLinksLayout(spacing, deviceCard, uriHandler)
@@ -138,34 +135,37 @@ private fun FilesLinks(
     deviceCard: DeviceCard,
     uriHandler: UriHandler
 ) {
-    if (deviceCard.unifiedDriversUEFI) {
-        LinkButton(
-            title = stringResource(R.string.driversuefi, deviceCard.deviceName),
-            subtitle = null,
-            link = deviceCard.driversLink,
-            icon = R.drawable.ic_drivers,
-            uriHandler = uriHandler
-        )
-    }
+    with(deviceCard) {
+        if (unifiedDriversUEFI) {
+            LinkButton(
+                title = stringResource(R.string.driversuefi, deviceName),
+                subtitle = null,
+                link = driversLink,
+                icon = R.drawable.ic_drivers,
+                uriHandler = uriHandler
+            )
+        } else {
 
-    if (!deviceCard.noDrivers && !deviceCard.unifiedDriversUEFI) {
-        LinkButton(
-            title = stringResource(R.string.drivers, deviceCard.deviceName),
-            subtitle = null,
-            link = deviceCard.driversLink,
-            icon = R.drawable.ic_drivers,
-            uriHandler = uriHandler
-        )
-    }
+            if (!noDrivers) {
+                LinkButton(
+                    title = stringResource(R.string.drivers, deviceName),
+                    subtitle = null,
+                    link = driversLink,
+                    icon = R.drawable.ic_drivers,
+                    uriHandler = uriHandler
+                )
+            }
 
-    if (!deviceCard.noUEFI && !deviceCard.unifiedDriversUEFI) {
-        LinkButton(
-            title = stringResource(R.string.uefi, deviceCard.deviceName),
-            subtitle = null,
-            link = deviceCard.uefiLink,
-            icon = R.drawable.ic_uefi,
-            uriHandler = uriHandler
-        )
+            if (!noUEFI) {
+                LinkButton(
+                    title = stringResource(R.string.uefi, deviceName),
+                    subtitle = null,
+                    link = uefiLink,
+                    icon = R.drawable.ic_uefi,
+                    uriHandler = uriHandler
+                )
+            }
+        }
     }
 }
 
@@ -174,23 +174,25 @@ private fun SocialLinks(
     deviceCard: DeviceCard,
     uriHandler: UriHandler
 ) {
-    if (!deviceCard.noGroup) {
-        LinkButton(
-            title = stringResource(R.string.group, deviceCard.deviceName),
-            subtitle = null,
-            link = deviceCard.groupLink,
-            icon = Icons.AutoMirrored.Filled.Message,
-            uriHandler = uriHandler
-        )
-    }
+    with(deviceCard) {
+        if (!noGroup) {
+            LinkButton(
+                title = stringResource(R.string.group, deviceName),
+                subtitle = null,
+                link = groupLink,
+                icon = Icons.AutoMirrored.Filled.Message,
+                uriHandler = uriHandler
+            )
+        }
 
-    if (!deviceCard.noGuide) {
-        LinkButton(
-            title = stringResource(R.string.guide, deviceCard.deviceName),
-            subtitle = null,
-            link = deviceCard.deviceGuide,
-            icon = Icons.Filled.Book,
-            uriHandler = uriHandler
-        )
+        if (!noGuide) {
+            LinkButton(
+                title = stringResource(R.string.guide, deviceName),
+                subtitle = null,
+                link = deviceGuide,
+                icon = Icons.Filled.Book,
+                uriHandler = uriHandler
+            )
+        }
     }
 }

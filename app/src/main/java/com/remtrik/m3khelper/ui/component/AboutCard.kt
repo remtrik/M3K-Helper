@@ -24,13 +24,10 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.fromHtml
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.sp
-import androidx.compose.ui.tooling.preview.Preview
 import com.ramcosta.composedestinations.annotation.Destination
 import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.spec.DestinationStyle
 import com.remtrik.m3khelper.BuildConfig
-import com.remtrik.m3khelper.ui.theme.M3KHelperTheme
 import com.remtrik.m3khelper.R.drawable.ic_windows
 import com.remtrik.m3khelper.R.string.app_name
 import com.remtrik.m3khelper.R.string.source
@@ -89,15 +86,5 @@ fun AboutCard() {
                 }
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun AboutCardPreview() {
-    FontSize = 15.sp
-    LineHeight = 15.sp
-    M3KHelperTheme {
-        AboutCard()
     }
 }

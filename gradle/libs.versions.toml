@@ -1,13 +1,13 @@
 [versions]
-agp = "9.2.1"
-kotlin = "2.3.21"
+agp = "9.3.1"
+kotlin = "2.4.10"
 ksp = "2.3.7"
 compose-destination = "2.3.0"
 libsu = "6.0.0"
-material3 = "1.5.0-alpha19"
-okhttp = "5.3.2"
-compose-ui = "1.11.1"
-materialKolor = "4.1.1"
+material3 = "1.5.0-alpha25"
+okhttp = "5.4.0"
+compose-ui = "1.11.4"
+materialKolor = "5.0.0"
 
 [plugins]
 agp-app = { id = "com.android.application", version.ref = "agp" }
@@ -29,12 +29,12 @@ com-github-topjohnwu-libsu-core = { group = "com.github.topjohnwu.libsu", name =
 com-github-topjohnwu-libsu-service = { group = "com.github.topjohnwu.libsu", name = "service", version.ref = "libsu" }
 com-github-topjohnwu-libsu-nio = { group = "com.github.topjohnwu.libsu", name = "nio", version.ref = "libsu" }
 
-kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.10.2" }
+kotlinx-coroutines-core = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-core", version = "1.11.0" }
 
 compose-destinations-core = { group = "io.github.raamcosta.compose-destinations", name = "core", version.ref = "compose-destination" }
 compose-destinations-ksp = { group = "io.github.raamcosta.compose-destinations", name = "ksp", version.ref = "compose-destination" }
 
-material = { module = "com.google.android.material:material", version = "1.13.0" }
+material = { module = "com.google.android.material:material", version = "1.14.0" }
 
 materialKolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
 

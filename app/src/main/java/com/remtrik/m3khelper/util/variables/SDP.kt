@@ -39,11 +39,6 @@ private fun rememberWidthRatio(configs: List<WidthRatioConfig>): Double {
     }
 }
 
-private fun calculateRatio(width: Int, configs: List<WidthRatioConfig>): Double {
-    val matchingConfig = configs.find { width <= it.widthThreshold }
-    return width / (matchingConfig?.divisor ?: configs.last().divisor)
-}
-
 private val sdpRatioConfigs = listOf(
     WidthRatioConfig(widthThreshold = 400, divisor = 440.0),
     WidthRatioConfig(widthThreshold = 550, divisor = 450.0),

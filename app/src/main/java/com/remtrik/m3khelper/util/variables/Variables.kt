@@ -2,6 +2,7 @@ package com.remtrik.m3khelper.util.variables
 
 import android.annotation.SuppressLint
 import android.os.Build
+import android.os.Environment
 import android.os.Parcelable
 import android.util.Log
 import androidx.compose.ui.unit.Dp
@@ -64,8 +65,8 @@ private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
 val device: DeviceData by lazy { DeviceData() }
 
-//val SdcardPath: String by lazy { Environment.getExternalStorageDirectory().path }
-const val SDCARD_PATH: String = "/sdcard"
+val SDCARD_PATH: String by lazy { Environment.getExternalStorageDirectory().path }
+//const val SDCARD_PATH: String = "/sdcard"
 
 object AppSettings {
     val checkUpdate = MutableStateFlow(prefs.getBoolean("check_update", true))

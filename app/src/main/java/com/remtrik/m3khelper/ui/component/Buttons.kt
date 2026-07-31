@@ -24,7 +24,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -40,13 +39,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.remtrik.m3khelper.M3KApp
 import com.remtrik.m3khelper.R.drawable.ic_backup
 import com.remtrik.m3khelper.R.drawable.ic_folder
 import com.remtrik.m3khelper.R.drawable.ic_folder_open
 import com.remtrik.m3khelper.R.drawable.ic_windows
 import com.remtrik.m3khelper.R.string
-import com.remtrik.m3khelper.ui.viewmodel.DeviceViewModel
 import com.remtrik.m3khelper.util.funcs.BootBackupState
 import com.remtrik.m3khelper.util.funcs.ErrorType
 import com.remtrik.m3khelper.util.funcs.MountStatus
@@ -56,6 +55,7 @@ import com.remtrik.m3khelper.util.variables.PaddingValue
 import com.remtrik.m3khelper.util.variables.commandError
 import com.remtrik.m3khelper.util.variables.commandHandler
 import com.remtrik.m3khelper.util.variables.device
+import com.remtrik.m3khelper.util.variables.dynamicVars
 import com.remtrik.m3khelper.util.variables.sdp
 import com.remtrik.m3khelper.util.variables.showBootBackupErrorDialog
 import com.remtrik.m3khelper.util.variables.showMountErrorDialog
@@ -226,135 +226,126 @@ fun LinkButton(
 
 @Composable
 fun BackupButton() {
-    val showDialog = remember { mutableStateOf(false) }
-    val showSpinner = remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    var showSpinner by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val currentDeviceCard by device.currentDeviceCard.collectAsState()
+    val currentDeviceCard by device.currentDeviceCard.collectAsStateWithLifecycle()
 
     ElevatedCard(
-        onClick = { showDialog.value = true },
+        onClick = { showDialog = true },
         modifier = Modifier
             .height(105.sdp())
             .fillMaxWidth(),
     ) {
-        when {
-            showSpinner.value -> {
-                StatusDialog(
-                    icon = painterResource(id = ic_backup),
-                    title = string.please_wait,
-                    showDialog = showSpinner.value,
-                )
-            }
+        if(showSpinner) {
+            StatusDialog(
+                icon = painterResource(id = ic_backup),
+                title = string.please_wait,
+                showDialog = showSpinner,
+            )
         }
-        when {
-            showDialog.value -> {
-                AlertDialog(
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = ic_backup),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(40.sdp())
+        if (showDialog) {
+            AlertDialog(
+                icon = {
+                    Icon(
+                        painter = painterResource(id = ic_backup),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.sdp())
+                    )
+                },
+                title = {
+                },
+                text = {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(string.backup_boot_question),
+                        textAlign = TextAlign.Center,
+                        fontSize = FontSize,
+                        lineHeight = LineHeight
+                    )
+                },
+                onDismissRequest = { showDialog = false },
+                dismissButton = {
+                    Row(
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                        horizontalArrangement = Arrangement.spacedBy(10.sdp())
+                    ) {
+                        AssistChip(
+                            onClick = {
+                                scope.launch {
+                                    showDialog = false
+                                    showSpinner = true
+                                    val result =
+                                        commandHandler.dumpBoot(
+                                            ErrorType.QUICKBOOT_ERROR,
+                                            BootBackupState.ANDROID
+                                        )
+                                    if (!result.isSuccess) {
+                                        commandError.value = result.output[0]
+                                        showBootBackupErrorDialog.value = true
+                                    } else {
+                                        dynamicVars()
+                                    }
+                                    showSpinner = false
+                                }
+                            },
+                            label = {
+                                Text(
+                                    modifier = Modifier.padding(
+                                        vertical = 2.sdp()
+                                    ),
+                                    text = stringResource(string.android),
+                                    fontSize = FontSize
+                                )
+                            }
                         )
-                    },
-                    title = {
-                    },
-                    text = {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(string.backup_boot_question),
-                            textAlign = TextAlign.Center,
-                            fontSize = FontSize,
-                            lineHeight = LineHeight
-                        )
-                    },
-                    onDismissRequest = { showDialog.value = false; },
-                    dismissButton = {
-                        Row(
-                            modifier = Modifier.align(Alignment.CenterHorizontally),
-                            horizontalArrangement = Arrangement.spacedBy(10.sdp())
-                        ) {
+                        if (!currentDeviceCard.noMount) {
                             AssistChip(
                                 onClick = {
                                     scope.launch {
-                                        showDialog.value = false
-                                        showSpinner.value = true
+                                        showDialog = false
+                                        showSpinner = true
                                         val result =
                                             commandHandler.dumpBoot(
-                                                ErrorType.QUICKBOOT_ERROR,
-                                                BootBackupState.ANDROID
+                                                ErrorType.BOOTBACKUP_ERROR,
+                                                BootBackupState.WINDOWS
                                             )
                                         if (!result.isSuccess) {
                                             commandError.value = result.output[0]
                                             showBootBackupErrorDialog.value = true
-                                        } else {
-                                            DeviceViewModel().refreshStatus()
                                         }
-                                        showSpinner.value = false
+                                        showSpinner = false
                                     }
                                 },
                                 label = {
                                     Text(
                                         modifier = Modifier.padding(
-                                            top = 2.sdp(),
-                                            bottom = 2.sdp()
+                                            vertical = 2.sdp()
                                         ),
-                                        text = stringResource(string.android),
-                                        fontSize = FontSize
-                                    )
-                                }
-                            )
-                            when {
-                                !currentDeviceCard.noMount -> {
-                                    AssistChip(
-                                        onClick = {
-                                            scope.launch {
-                                                showDialog.value = false
-                                                showSpinner.value = true
-                                                val result =
-                                                    commandHandler.dumpBoot(
-                                                        ErrorType.BOOTBACKUP_ERROR,
-                                                        BootBackupState.WINDOWS
-                                                    )
-                                                if (!result.isSuccess) {
-                                                    commandError.value = result.output[0]
-                                                    showBootBackupErrorDialog.value = true
-                                                }
-                                                showSpinner.value = false
-                                            }
-                                        },
-                                        label = {
-                                            Text(
-                                                modifier = Modifier.padding(
-                                                    top = 2.sdp(),
-                                                    bottom = 2.sdp()
-                                                ),
-                                                text = stringResource(string.windows),
-                                                fontSize = FontSize
-                                            )
-                                        }
-                                    )
-                                }
-                            }
-                            AssistChip(
-                                onClick = { showDialog.value = false; },
-                                label = {
-                                    Text(
-                                        modifier = Modifier.padding(
-                                            top = 2.sdp(),
-                                            bottom = 2.sdp()
-                                        ),
-                                        text = stringResource(string.no),
+                                        text = stringResource(string.windows),
                                         fontSize = FontSize
                                     )
                                 }
                             )
                         }
-                    },
-                    confirmButton = {
+                        AssistChip(
+                            onClick = { showDialog = false },
+                            label = {
+                                Text(
+                                    modifier = Modifier.padding(
+                                        vertical = 2.sdp()
+                                    ),
+                                    text = stringResource(string.no),
+                                    fontSize = FontSize
+                                )
+                            }
+                        )
                     }
-                )
-            }
+                },
+                confirmButton = {
+                }
+            )
         }
         Row(
             modifier = Modifier
@@ -383,7 +374,7 @@ fun BackupButton() {
 
 @Composable
 fun MountButton() {
-    val showDialog = remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
     var isMounted by remember { mutableStateOf(MountStatus.NOT_MOUNTED) }
 
     LaunchedEffect(Unit) {
@@ -393,52 +384,50 @@ fun MountButton() {
     val scope = rememberCoroutineScope()
 
     ElevatedCard(
-        onClick = { showDialog.value = true },
+        onClick = { showDialog = true },
         modifier = Modifier
             .height(105.sdp())
             .fillMaxWidth(),
     ) {
-        when {
-            showDialog.value -> {
-                if (isMounted == MountStatus.MOUNTED) {
-                    Dialog(
-                        painterResource(id = ic_folder),
-                        null,
-                        stringResource(string.umnt_question),
-                        showDialog.value,
-                        onDismiss = { showDialog.value = false; },
-                        onConfirm = {
-                            scope.launch {
-                                val result = commandHandler.umountWindows()
-                                if (!result.isSuccess) {
-                                    commandError.value = result.output[0]
-                                    showMountErrorDialog.value = true
-                                }
-                                showDialog.value = false
-                                isMounted = commandHandler.isMounted()
+        if (showDialog) {
+            if (isMounted == MountStatus.MOUNTED) {
+                Dialog(
+                    painterResource(id = ic_folder),
+                    null,
+                    stringResource(string.umnt_question),
+                    showDialog,
+                    onDismiss = { showDialog = false },
+                    onConfirm = {
+                        scope.launch {
+                            val result = commandHandler.umountWindows()
+                            if (!result.isSuccess) {
+                                commandError.value = result.output[0]
+                                showMountErrorDialog.value = true
                             }
+                            showDialog = false
+                            isMounted = commandHandler.isMounted()
                         }
-                    )
-                } else {
-                    Dialog(
-                        icon = painterResource(id = ic_folder_open),
-                        title = null,
-                        description = stringResource(string.mnt_question),
-                        showDialog = showDialog.value,
-                        onDismiss = { showDialog.value = false },
-                        onConfirm = {
-                            scope.launch {
-                                val result = commandHandler.mountWindows()
-                                if (!result.isSuccess) {
-                                    commandError.value = result.output[0]
-                                    showMountErrorDialog.value = true
-                                }
-                                showDialog.value = false
-                                isMounted = commandHandler.isMounted()
+                    }
+                )
+            } else {
+                Dialog(
+                    icon = painterResource(id = ic_folder_open),
+                    title = null,
+                    description = stringResource(string.mnt_question),
+                    showDialog = showDialog,
+                    onDismiss = { showDialog = false },
+                    onConfirm = {
+                        scope.launch {
+                            val result = commandHandler.mountWindows()
+                            if (!result.isSuccess) {
+                                commandError.value = result.output[0]
+                                showMountErrorDialog.value = true
                             }
+                            showDialog = false
+                            isMounted = commandHandler.isMounted()
                         }
-                    )
-                }
+                    }
+                )
             }
         }
         Row(
@@ -477,105 +466,100 @@ fun MountButton() {
 
 @Composable
 fun QuickBootButton() {
-    val showDialog = remember { mutableStateOf(false) }
-    val showSpinner = remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    var showSpinner by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
-    val hasUefi = device.uefiCards.collectAsState().value.isNotEmpty()
-    val currentDeviceCard by device.currentDeviceCard.collectAsState()
+    val uefiCards by device.uefiCards.collectAsStateWithLifecycle()
+    val hasUefi = uefiCards.isNotEmpty()
+    val currentDeviceCard by device.currentDeviceCard.collectAsStateWithLifecycle()
 
     ElevatedCard(
-        onClick = { showDialog.value = true },
+        onClick = { showDialog = true },
         modifier = Modifier
             .height(105.sdp())
             .fillMaxWidth(),
         enabled = hasUefi
     ) {
-        when {
-            showSpinner.value -> {
-                StatusDialog(
-                    icon = painterResource(id = ic_windows),
-                    title = string.please_wait,
-                    showDialog = showSpinner.value,
-                )
-            }
+        if (showSpinner) {
+            StatusDialog(
+                icon = painterResource(id = ic_windows),
+                title = string.please_wait,
+                showDialog = showSpinner,
+            )
         }
-        when {
-            showDialog.value -> {
-                AlertDialog(
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = ic_windows),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(40.sdp())
-                        )
-                    },
-                    title = {
-                    },
-                    text = {
-                        Text(
-                            modifier = Modifier.fillMaxWidth(),
-                            text = stringResource(string.quickboot_question1),
-                            textAlign = TextAlign.Center,
-                            fontSize = FontSize
-                        )
-                    },
-                    onDismissRequest = ({ showDialog.value = false; }),
-                    dismissButton = {
-                        Row(
-                            Modifier.align(Alignment.CenterHorizontally),
-                            horizontalArrangement = Arrangement.spacedBy(10.sdp())
-                        ) {
-                            device.uefiCards.collectAsState().value.forEach {
-                                AssistChip(
-                                    onClick = {
-                                        scope.launch {
-                                            showDialog.value = false
-                                            showSpinner.value = true
-                                            commandHandler.quickBoot(
-                                                it.uefiPath
-                                            )
-                                            showSpinner.value = false
-                                        }
-                                    },
-                                    label = {
-                                        Text(
-                                            modifier = Modifier.padding(
-                                                top = 2.sdp(),
-                                                bottom = 2.sdp()
-                                            ),
-                                            text = stringResource(
-                                                when (it.uefiType) {
-                                                    120 -> string.quickboot_question120
-                                                    90 -> string.quickboot_question90
-                                                    60 -> string.quickboot_question60
-                                                    else -> string.yes
-                                                }
-                                            ),
-                                            fontSize = FontSize
-                                        )
-                                    }
-                                )
-                            }
+        if (showDialog) {
+            AlertDialog(
+                icon = {
+                    Icon(
+                        painter = painterResource(id = ic_windows),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(40.sdp())
+                    )
+                },
+                title = {
+                },
+                text = {
+                    Text(
+                        modifier = Modifier.fillMaxWidth(),
+                        text = stringResource(string.quickboot_question1),
+                        textAlign = TextAlign.Center,
+                        fontSize = FontSize
+                    )
+                },
+                onDismissRequest = { showDialog = false },
+                dismissButton = {
+                    Row(
+                        Modifier.align(Alignment.CenterHorizontally),
+                        horizontalArrangement = Arrangement.spacedBy(10.sdp())
+                    ) {
+                        uefiCards.forEach {
                             AssistChip(
-                                onClick = ({ showDialog.value = false; }),
+                                onClick = {
+                                    scope.launch {
+                                        showDialog = false
+                                        showSpinner = true
+                                        commandHandler.quickBoot(
+                                            it.uefiPath
+                                        )
+                                        showSpinner = false
+                                    }
+                                },
                                 label = {
                                     Text(
                                         modifier = Modifier.padding(
-                                            top = 2.sdp(),
-                                            bottom = 2.sdp()
+                                            vertical = 2.sdp()
                                         ),
-                                        text = stringResource(string.no),
+                                        text = stringResource(
+                                            when (it.uefiType) {
+                                                120 -> string.quickboot_question120
+                                                90 -> string.quickboot_question90
+                                                60 -> string.quickboot_question60
+                                                else -> string.yes
+                                            }
+                                        ),
                                         fontSize = FontSize
                                     )
                                 }
                             )
                         }
-                    },
-                    confirmButton = {
+                        AssistChip(
+                            onClick = { showDialog = false },
+                            label = {
+                                Text(
+                                    modifier = Modifier.padding(
+                                        vertical = 2.sdp()
+                                    ),
+                                    text = stringResource(string.no),
+                                    fontSize = FontSize
+                                )
+                            }
+                        )
                     }
-                )
-            }
+                },
+                confirmButton = {
+                }
+            )
         }
         Row(
             modifier = Modifier

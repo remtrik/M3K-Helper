@@ -9,14 +9,14 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalInspectionMode
 import com.materialkolor.PaletteStyle
 import com.materialkolor.dynamicColorScheme
+import com.materialkolor.ktx.animateColorScheme
 import com.remtrik.m3khelper.M3KApp
 import com.remtrik.m3khelper.util.variables.AppSettings
 
@@ -66,29 +66,27 @@ fun M3KHelperTheme(
         runCatching { PaletteStyle.valueOf(styleName) }.getOrDefault(PaletteStyle.TonalSpot)
     }
 
-    val colorScheme by remember(darkTheme, engineEnable, materialUEnable, style, r, g, b) {
-        derivedStateOf {
-            when {
-                materialUEnable && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                    if (darkTheme) dynamicDarkColorScheme(M3KApp) else dynamicLightColorScheme(M3KApp)
-                }
-
-                engineEnable -> {
-                    dynamicColorScheme(
-                        seedColor = Color(r, g, b),
-                        isDark = darkTheme,
-                        style = style
-                    )
-                }
-
-                darkTheme -> DarkColorScheme
-                else -> LightColorScheme
+    val colorScheme = remember(darkTheme, engineEnable, materialUEnable, style, r, g, b) {
+        when {
+            materialUEnable && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
+                if (darkTheme) dynamicDarkColorScheme(M3KApp) else dynamicLightColorScheme(M3KApp)
             }
+
+            engineEnable -> {
+                dynamicColorScheme(
+                    seedColor = Color(r, g, b),
+                    isDark = darkTheme,
+                    style = style,
+                )
+            }
+
+            darkTheme -> DarkColorScheme
+            else -> LightColorScheme
         }
     }
 
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = animateColorScheme(colorScheme),
         typography = Typography,
         motionScheme = MotionScheme.expressive(),
         content = content

@@ -62,7 +62,7 @@ abstract class Commands {
                         innerRes = RootCommandExecutor.exec(
                             "dd if=/dev/block/bootdevice/by-name/boot${device.slot} of=${target.path} bs=32M"
                         )
-                        bootBackupStatus(forceMount = true)
+                        bootBackupStatus()
                     }
                     if (!ok) return@withContext CommandResult(
                         false,
@@ -164,7 +164,7 @@ abstract class Commands {
         toCommandResult(res)
     }
 
-    suspend fun quickBoot(uefiPath: String) = withContext(Dispatchers.IO) {
+    suspend fun quickBoot(uefiPath: String): Unit = withContext(Dispatchers.IO) {
         var manualReboot = false
         if (!device.currentDeviceCard.value.noMount) {
             if (ShellUtils.fastCmd("find ${SDCARD_PATH}/Windows/boot.img").isEmpty()) {
