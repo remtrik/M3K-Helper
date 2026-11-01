@@ -76,9 +76,6 @@ import com.remtrik.m3khelper.util.funcs.LatestVersionInfo
 import com.remtrik.m3khelper.util.slideFromRightEnterTransition
 import com.remtrik.m3khelper.util.slideToLeftExitTransition
 import com.remtrik.m3khelper.util.slideToRightExitTransition
-import com.remtrik.m3khelper.util.variables.FontSize
-import com.remtrik.m3khelper.util.variables.LineHeight
-import com.remtrik.m3khelper.util.variables.PaddingValue
 import com.remtrik.m3khelper.util.variables.device
 import com.remtrik.m3khelper.util.variables.sdp
 import com.remtrik.m3khelper.util.variables.showWarningCard
@@ -97,8 +94,11 @@ class MainActivity : ComponentActivity() {
         requestedOrientation = resolveOrientation()
 
         setContent {
+            val forceRotation by com.remtrik.m3khelper.util.variables.AppSettings.forceRotation.flow.collectAsStateWithLifecycle()
+            LaunchedEffect(forceRotation) {
+                requestedOrientation = resolveOrientation()
+            }
             M3KHelperTheme {
-                InitDimens()
                 if (Shell.isAppGrantedRoot() == true) {
                     M3KRootContent()
                 } else {
@@ -119,13 +119,6 @@ class MainActivity : ComponentActivity() {
             SCREEN_ORIENTATION_USER_PORTRAIT
         }
     }
-}
-
-@Composable
-internal fun InitDimens() {
-    LineHeight = 20.ssp()
-    FontSize = 15.ssp()
-    PaddingValue = 10.sdp()
 }
 
 @Composable

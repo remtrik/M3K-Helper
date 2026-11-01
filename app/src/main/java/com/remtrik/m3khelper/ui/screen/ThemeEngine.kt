@@ -182,7 +182,7 @@ private fun PaletteDropdown(
     onPaletteStyleSelected: (String) -> Unit
 ) {
     val otherStyles = remember(paletteStyle) {
-        PaletteStyle.entries.filter { it.name != paletteStyle }
+        PaletteStyle.KnownStyles.filter { it.name != paletteStyle }
     }
 
     Box(modifier = Modifier.fillMaxWidth()) {

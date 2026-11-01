@@ -17,13 +17,13 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.remtrik.m3khelper.util.variables.AppSettings
 import com.remtrik.m3khelper.util.variables.FontSize
 import com.remtrik.m3khelper.util.variables.LineHeight
@@ -82,34 +82,19 @@ private fun ColorSliders(
         ColorSlider(
             label = "R",
             value = red,
-            onValueChange = {
-                AppSettings.themeEngineColorR.flow.value = it
-            },
-            onValueChangeFinished = {
-                AppSettings.themeEngineColorR.update(red)
-            },
+            onValueChange = { AppSettings.themeEngineColorR.update(it) },
             color = Color.Red
         )
         ColorSlider(
             label = "G",
             value = green,
-            onValueChange = {
-                AppSettings.themeEngineColorG.flow.value = it
-            },
-            onValueChangeFinished = {
-                AppSettings.themeEngineColorG.update(green)
-            },
+            onValueChange = { AppSettings.themeEngineColorG.update(it) },
             color = Color.Green
         )
         ColorSlider(
             label = "B",
             value = blue,
-            onValueChange = {
-                AppSettings.themeEngineColorB.flow.value = it
-            },
-            onValueChangeFinished = {
-                AppSettings.themeEngineColorB.update(blue)
-            },
+            onValueChange = { AppSettings.themeEngineColorB.update(it) },
             color = Color.Blue
         )
     }
@@ -120,7 +105,6 @@ private fun ColorSlider(
     label: String,
     value: Float,
     onValueChange: (Float) -> Unit,
-    onValueChangeFinished: () -> Unit,
     color: Color,
 ) {
     Row(
@@ -135,7 +119,6 @@ private fun ColorSlider(
         Slider(
             value = value,
             onValueChange = onValueChange,
-            onValueChangeFinished = onValueChangeFinished,
             colors = SliderDefaults.colors(
                 thumbColor = color,
                 activeTrackColor = color,
@@ -144,7 +127,7 @@ private fun ColorSlider(
             modifier = Modifier.weight(1f)
         )
         Text(
-            text = value.toColorInt().toString(),
+            text = (value * 255).toInt().toString(),
             modifier = Modifier.width(35.sdp()),
             fontSize = FontSize,
             lineHeight = LineHeight,
@@ -153,5 +136,3 @@ private fun ColorSlider(
         )
     }
 }
-
-fun Float.toColorInt(): Int = (this * 255 + 0.5f).toInt()

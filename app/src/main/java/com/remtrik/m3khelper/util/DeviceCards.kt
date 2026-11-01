@@ -12,15 +12,15 @@ data class DeviceCard(
     val deviceCodename: List<String>,
     val deviceName: String,
     val deviceImage: Int,
-    val deviceGuide: String,
-    val groupLink: String,
-    val driversLink: String,
-    val uefiLink: String,
-    val noModem: Boolean, val noFlash: Boolean,
-    val noBoot: Boolean, val noMount: Boolean,
-    val sensors: Boolean, val noGuide: Boolean,
-    val noGroup: Boolean, val noDrivers: Boolean,
-    val noUEFI: Boolean, val unifiedDriversUEFI: Boolean,
+    val deviceGuide: String = "",
+    val groupLink: String = "",
+    val driversLink: String = "",
+    val uefiLink: String = "",
+    val noModem: Boolean = false, val noFlash: Boolean = false,
+    val noBoot: Boolean = false, val noMount: Boolean = false,
+    val sensors: Boolean = false, val noGuide: Boolean = false,
+    val noGroup: Boolean = false, val noDrivers: Boolean = false,
+    val noUEFI: Boolean = false, val unifiedDriversUEFI: Boolean = false,
     val noLinks: Boolean = false
 ) : Parcelable
 
@@ -31,12 +31,8 @@ val vayuCard: DeviceCard = DeviceCard(
     "https://github.com/WaLoVayu/POCOX3Pro-Windows-Guides",
     "https://t.me/WaLoVayu",
     "https://github.com/remtrik-stuff/POCOX3Pro-Windows-Releases/releases/latest",
-    "",
-    noModem = true, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = true
+    noModem = true,
+    unifiedDriversUEFI = true
 )
 
 val nabuCard: DeviceCard = DeviceCard(
@@ -46,12 +42,8 @@ val nabuCard: DeviceCard = DeviceCard(
     "https://github.com/erdilS/Port-Windows-11-Xiaomi-Pad-5",
     "https://t.me/nabuwoa",
     "https://github.com/remtrik-stuff/MiPad5-Windows-Releases/releases/latest",
-    "",
-    noModem = true, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = true
+    noModem = true,
+    unifiedDriversUEFI = true
 )
 
 val raphaelCard: DeviceCard = DeviceCard(
@@ -61,12 +53,7 @@ val raphaelCard: DeviceCard = DeviceCard(
     "https://github.com/graphiks/woa-raphael",
     "https://t.me/woaraphael",
     "https://github.com/woa-raphael/raphael-drivers/releases/latest",
-    "https://github.com/woa-raphael/woa-raphael/releases/tag/raphael-uefi",
-    noModem = false, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = false
+    "https://github.com/woa-raphael/woa-raphael/releases/tag/raphael-uefi"
 )
 
 val raphaelinCard: DeviceCard =
@@ -81,12 +68,8 @@ val cepheusCard: DeviceCard = DeviceCard(
     "https://github.com/ivnvrvnn/Port-Windows-XiaoMI-9",
     "https://t.me/woacepheus",
     "https://github.com/qaz6750/XiaoMi9-Drivers/releases/latest",
-    "",
-    noModem = true, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = true
+    noModem = true,
+    unifiedDriversUEFI = true
 )
 
 val berylliumCard: DeviceCard = DeviceCard(
@@ -96,12 +79,7 @@ val berylliumCard: DeviceCard = DeviceCard(
     "https://github.com/n00b69/woa-beryllium",
     "https://t.me/WinOnF1",
     "https://github.com/n00b69/woa-beryllium/releases/tag/Drivers",
-    "https://github.com/n00b69/woa-beryllium/releases/tag/UEFI",
-    noModem = false, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = false
+    "https://github.com/n00b69/woa-beryllium/releases/tag/UEFI"
 )
 
 val miatollCard: DeviceCard = DeviceCard(
@@ -111,12 +89,7 @@ val miatollCard: DeviceCard = DeviceCard(
     "https://github.com/woa-miatoll/Port-Windows-11-Redmi-Note-9-Pro",
     "http://t.me/woamiatoll",
     "https://github.com/woa-miatoll/Miatoll-Releases/releases/latest",
-    "",
-    noModem = true, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = true
+    noModem = true, unifiedDriversUEFI = true
 )
 val curtanaCard: DeviceCard =
     miatollCard.copy(deviceCodename = listOf("curtana"), deviceName = "Redmi Note 9S")
@@ -132,12 +105,7 @@ val alphaCard: DeviceCard = DeviceCard(
     "https://github.com/n00b69/woa-alphaplus",
     "https://t.me/lgedevices",
     "https://github.com/n00b69/woa-alphaplus/releases/tag/Drivers",
-    "https://github.com/n00b69/woa-alphaplus/releases/tag/UEFI",
-    noModem = false, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = false
+    "https://github.com/n00b69/woa-alphaplus/releases/tag/UEFI"
 )
 
 val mh2lm5gCard: DeviceCard = DeviceCard(
@@ -147,12 +115,7 @@ val mh2lm5gCard: DeviceCard = DeviceCard(
     "https://github.com/n00b69/woa-mh2lm5g",
     "https://t.me/lgedevices",
     "https://github.com/n00b69/woa-mh2lm5g/releases/tag/Drivers",
-    "https://github.com/n00b69/woa-mh2lm5g/releases/tag/UEFI",
-    noModem = false, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = false
+    "https://github.com/n00b69/woa-mh2lm5g/releases/tag/UEFI"
 )
 
 val mh2Card: DeviceCard = mh2lm5gCard.copy(
@@ -171,11 +134,7 @@ val betaCard: DeviceCard = DeviceCard(
     "https://t.me/lgedevices",
     "https://github.com/n00b69/woa-betalm/releases/tag/Drivers",
     "https://github.com/n00b69/woa-betalm/releases/tag/UEFI",
-    noModem = true, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = false
+    noModem = true
 )
 
 val flashCard: DeviceCard = mh2lm5gCard.copy(
@@ -189,15 +148,13 @@ val guacamoleCard: DeviceCard = DeviceCard(
     listOf("guacamole", "OnePlus7Pro"),
     "OnePlus 7 Pro",
     drawable.guacamole,
-    "",
-    "https://t.me/onepluswoachat",
-    "",
-    "",
-    noModem = true, noFlash = true,
-    noBoot = true, noMount = false,
-    sensors = false, noGuide = true,
-    noGroup = false, noDrivers = true,
-    noUEFI = true, unifiedDriversUEFI = false
+    groupLink = "https://t.me/onepluswoachat",
+    noModem = true,
+    noFlash = true,
+    noBoot = true,
+    noGuide = true,
+    noDrivers = true,
+    noUEFI = true
 )
 
 val hotdogCard: DeviceCard = guacamoleCard.copy(
@@ -212,13 +169,13 @@ val suryaCard: DeviceCard = DeviceCard(
     drawable.vayu,
     "https://github.com/woa-surya/POCOX3NFC-Guides",
     "https://t.me/windows_on_pocox3_nfc",
-    "",
-    "",
     noModem = true, noFlash = true,
-    noBoot = true, noMount = false,
-    sensors = false, noGuide = true,
-    noGroup = true, noDrivers = true,
-    noUEFI = true, unifiedDriversUEFI = true,
+    noBoot = true,
+    noGuide = true,
+    noGroup = true,
+    noDrivers = true,
+    noUEFI = true,
+    unifiedDriversUEFI = true,
     noLinks = true
 )
 
@@ -229,27 +186,19 @@ val a52sxqCard: DeviceCard = DeviceCard(
     "https://github.com/woa-a52s/Samsung-A52s-5G-Guides",
     "https://t.me/a52sxq_uefi",
     "https://github.com/woa-a52s/Samsung-A52s-5G-Releases/releases/latest",
-    "",
-    noModem = true, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = true
+    noModem = true,
+    unifiedDriversUEFI = true
 )
 
 val beyond1Card: DeviceCard = DeviceCard(
     listOf("beyond1"),
     "Samsung Galaxy S10",
     drawable.beyond1,
-    "",
-    "https://t.me/woahelperchat",
-    "",
-    "",
-    noModem = true, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = true,
-    noGroup = false, noDrivers = true,
-    noUEFI = true, unifiedDriversUEFI = false
+    groupLink = "https://t.me/woahelperchat",
+    noModem = true,
+    noGuide = true,
+    noDrivers = true,
+    noUEFI = true
 )
 
 val debugCard: DeviceCard = DeviceCard(
@@ -260,26 +209,21 @@ val debugCard: DeviceCard = DeviceCard(
     "https://google.com",
     "https://google.com",
     "https://google.com",
-    noModem = false, noFlash = false,
-    noBoot = false, noMount = false,
-    sensors = false, noGuide = false,
-    noGroup = false, noDrivers = false,
-    noUEFI = false, unifiedDriversUEFI = true
+    unifiedDriversUEFI = true
 )
 
 val unknownCard: DeviceCard = DeviceCard(
     listOf("unknown"),
     unknown_device.string(),
     drawable.ic_device_unknown,
-    "",
-    "",
-    "",
-    "",
-    noModem = true, noFlash = true,
-    noBoot = true, noMount = true,
-    sensors = false, noGuide = true,
-    noGroup = true, noDrivers = true,
-    noUEFI = true, unifiedDriversUEFI = false,
+    noModem = true,
+    noFlash = true,
+    noBoot = true,
+    noMount = true,
+    noGuide = true,
+    noGroup = true,
+    noDrivers = true,
+    noUEFI = true,
     noLinks = true
 )
 

@@ -36,9 +36,6 @@ class M3KHelperApplication : Application() {
                             .header("Accept-Language", Locale.getDefault().toLanguageTag()).build()
                     )
                 }.build()
-        Thread {
-            Shell.getShell()
-            if (Shell.isAppGrantedRoot() == true) vars()
-        }.start()
+        vars()
     }
 }

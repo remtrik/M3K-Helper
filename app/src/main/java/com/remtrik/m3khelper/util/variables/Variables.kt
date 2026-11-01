@@ -6,10 +6,9 @@ import android.os.Build
 import android.os.Environment
 import android.os.Parcelable
 import android.util.Log
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.remtrik.m3khelper.BuildConfig
 import com.remtrik.m3khelper.R.string
@@ -173,10 +172,15 @@ val commandError: MutableStateFlow<CommandError?> = MutableStateFlow(null)
 
 val commandHandler: Commands = object : Commands() {}
 
-// ui defaults
-var FontSize: TextUnit = 0.sp
-var PaddingValue: Dp = 0.dp
-var LineHeight: TextUnit = 0.sp
+// UI default scaling
+val FontSize: TextUnit
+    @Composable get() = 15.ssp()
+
+val LineHeight: TextUnit
+    @Composable get() = 20.ssp()
+
+val PaddingValue: Dp
+    @Composable get() = 10.sdp()
 
 // App State
 val firstBoot: Boolean get() = prefs.getBoolean("firstboot", true)

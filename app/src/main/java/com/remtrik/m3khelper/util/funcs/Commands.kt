@@ -18,9 +18,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 
-internal val BlockWindowsPath by lazy {
-    ShellUtils.fastCmd("readlink -fn /dev/block/bootdevice/by-name/win")
-}
+internal val blockWindowsPath: String
+    get() = ShellUtils.fastCmd("readlink -fn /dev/block/bootdevice/by-name/win")
 
 private const val TAG = "M3K: Commands"
 private const val WINDOWS_PARTITION = "/dev/block/by-name/win"
@@ -107,7 +106,9 @@ abstract class Commands {
     }
 
     suspend fun isMounted(): MountStatus = withContext(Dispatchers.IO) {
-        val result = Shell.cmd("mount | grep $BlockWindowsPath").exec()
+        val path = blockWindowsPath
+        if (path.isEmpty()) return@withContext MountStatus.NOT_MOUNTED
+        val result = Shell.cmd("mount | grep $path").exec()
         if (result.isSuccess && result.out.isNotEmpty() && result.out[0].contains("Windows")) {
             MountStatus.MOUNTED
         } else {

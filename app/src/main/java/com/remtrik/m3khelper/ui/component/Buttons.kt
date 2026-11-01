@@ -89,28 +89,20 @@ fun IconItem(
 }
 
 @Composable
-fun LinkButton(
+fun ActionCard(
+    icon: Any?,
     title: String,
     subtitle: String?,
-    link: String,
-    icon: Any?,
-    uriHandler: UriHandler
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
 ) {
     ElevatedCard(
-        onClick = {
-            try {
-                uriHandler.openUri(link)
-            } catch (_: Exception) {
-                Toast.makeText(
-                    M3KApp,
-                    M3KApp.getString(string.no_browser),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        },
-        modifier = Modifier
+        onClick = onClick,
+        modifier = modifier
             .height(105.sdp())
             .fillMaxWidth(),
+        enabled = enabled
     ) {
         Row(
             modifier = Modifier
@@ -142,51 +134,117 @@ fun LinkButton(
 }
 
 @Composable
+fun LinkButton(
+    title: String,
+    subtitle: String?,
+    link: String,
+    icon: Any?,
+    uriHandler: UriHandler
+) {
+    ActionCard(
+        icon = icon,
+        title = title,
+        subtitle = subtitle,
+        onClick = {
+            try {
+                uriHandler.openUri(link)
+            } catch (_: Exception) {
+                Toast.makeText(
+                    M3KApp,
+                    M3KApp.getString(string.no_browser),
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    )
+}
+
+@Composable
 fun BackupButton() {
     var showDialog by remember { mutableStateOf(false) }
     var showSpinner by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     val currentDeviceCard by device.currentDeviceCard.collectAsStateWithLifecycle()
 
-    ElevatedCard(
-        onClick = { showDialog = true },
-        modifier = Modifier
-            .height(105.sdp())
-            .fillMaxWidth(),
-    ) {
-        if (showSpinner) {
-            StatusDialog(
-                icon = painterResource(id = ic_backup),
-                title = string.please_wait,
-                showDialog = showSpinner,
-            )
-        }
-        if (showDialog) {
-            AlertDialog(
-                icon = {
-                    Icon(
-                        painter = painterResource(id = ic_backup),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.sdp())
+    if (showSpinner) {
+        StatusDialog(
+            icon = painterResource(id = ic_backup),
+            title = string.please_wait,
+            showDialog = showSpinner,
+        )
+    }
+    if (showDialog) {
+        AlertDialog(
+            icon = {
+                Icon(
+                    painter = painterResource(id = ic_backup),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.sdp())
+                )
+            },
+            title = null,
+            text = {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(string.backup_boot_question),
+                    textAlign = TextAlign.Center,
+                    fontSize = FontSize,
+                    lineHeight = LineHeight
+                )
+            },
+            onDismissRequest = { showDialog = false },
+            dismissButton = {
+                AssistChip(
+                    onClick = { showDialog = false },
+                    label = {
+                        Text(
+                            modifier = Modifier.padding(vertical = 2.sdp()),
+                            text = stringResource(string.no),
+                            fontSize = FontSize
+                        )
+                    }
+                )
+            },
+            confirmButton = {
+                Row(
+                    //modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.sdp())
+                ) {
+                    AssistChip(
+                        onClick = {
+                            scope.launch {
+                                showDialog = false
+                                showSpinner = true
+                                val result =
+                                    commandHandler.dumpBoot(
+                                        ErrorType.QUICKBOOT_ERROR,
+                                        BootBackupState.ANDROID
+                                    )
+                                if (!result.isSuccess) {
+                                    commandError.value = CommandError(
+                                        type = ErrorType.BOOTBACKUP_ERROR,
+                                        title = M3KApp.getString(string.backupboot_error),
+                                        message = result.error.firstOrNull()
+                                            ?: result.output.firstOrNull() ?: M3KApp.getString(
+                                                string.unknown_error
+                                            )
+                                    )
+                                } else {
+                                    dynamicVars()
+                                }
+                                showSpinner = false
+                            }
+                        },
+                        label = {
+                            Text(
+                                modifier = Modifier.padding(vertical = 2.sdp()),
+                                text = stringResource(string.android),
+                                fontSize = FontSize
+                            )
+                        }
                     )
-                },
-                title = null,
-                text = {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(string.backup_boot_question),
-                        textAlign = TextAlign.Center,
-                        fontSize = FontSize,
-                        lineHeight = LineHeight
-                    )
-                },
-                onDismissRequest = { showDialog = false },
-                dismissButton = {
-                    Row(
-                        modifier = Modifier.align(Alignment.CenterHorizontally),
-                        horizontalArrangement = Arrangement.spacedBy(10.sdp())
-                    ) {
+                    if (!currentDeviceCard.noMount) {
                         AssistChip(
                             onClick = {
                                 scope.launch {
@@ -194,108 +252,41 @@ fun BackupButton() {
                                     showSpinner = true
                                     val result =
                                         commandHandler.dumpBoot(
-                                            ErrorType.QUICKBOOT_ERROR,
-                                            BootBackupState.ANDROID
+                                            ErrorType.BOOTBACKUP_ERROR,
+                                            BootBackupState.WINDOWS
                                         )
                                     if (!result.isSuccess) {
                                         commandError.value = CommandError(
                                             type = ErrorType.BOOTBACKUP_ERROR,
                                             title = M3KApp.getString(string.backupboot_error),
                                             message = result.error.firstOrNull()
-                                                ?: result.output.firstOrNull() ?: M3KApp.getString(
-                                                    string.unknown_error
-                                                )
+                                                ?: result.output.firstOrNull()
+                                                ?: M3KApp.getString(string.unknown_error)
                                         )
-                                    } else {
-                                        dynamicVars()
                                     }
                                     showSpinner = false
                                 }
                             },
                             label = {
                                 Text(
-                                    modifier = Modifier.padding(
-                                        vertical = 2.sdp()
-                                    ),
-                                    text = stringResource(string.android),
-                                    fontSize = FontSize
-                                )
-                            }
-                        )
-                        if (!currentDeviceCard.noMount) {
-                            AssistChip(
-                                onClick = {
-                                    scope.launch {
-                                        showDialog = false
-                                        showSpinner = true
-                                        val result =
-                                            commandHandler.dumpBoot(
-                                                ErrorType.BOOTBACKUP_ERROR,
-                                                BootBackupState.WINDOWS
-                                            )
-                                        if (!result.isSuccess) {
-                                            commandError.value = CommandError(
-                                                type = ErrorType.BOOTBACKUP_ERROR,
-                                                title = M3KApp.getString(string.backupboot_error),
-                                                message = result.error.firstOrNull()
-                                                    ?: result.output.firstOrNull()
-                                                    ?: M3KApp.getString(string.unknown_error)
-                                            )
-                                        }
-                                        showSpinner = false
-                                    }
-                                },
-                                label = {
-                                    Text(
-                                        modifier = Modifier.padding(
-                                            vertical = 2.sdp()
-                                        ),
-                                        text = stringResource(string.windows),
-                                        fontSize = FontSize
-                                    )
-                                }
-                            )
-                        }
-                        AssistChip(
-                            onClick = { showDialog = false },
-                            label = {
-                                Text(
-                                    modifier = Modifier.padding(
-                                        vertical = 2.sdp()
-                                    ),
-                                    text = stringResource(string.no),
+                                    modifier = Modifier.padding(vertical = 2.sdp()),
+                                    text = stringResource(string.windows),
                                     fontSize = FontSize
                                 )
                             }
                         )
                     }
-                },
-                confirmButton = { }
-            )
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(PaddingValue),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.sdp())
-        ) {
-            IconItem(icon = ic_backup, modifier = Modifier.size(40.sdp()))
-            Column {
-                Text(
-                    stringResource(string.backup_boot_title),
-                    fontWeight = FontWeight.Bold,
-                    fontSize = FontSize,
-                    lineHeight = LineHeight,
-                )
-                Text(
-                    stringResource(string.backup_boot_subtitle),
-                    lineHeight = LineHeight,
-                    fontSize = FontSize
-                )
+                }
             }
-        }
+        )
     }
+
+    ActionCard(
+        icon = ic_backup,
+        title = stringResource(string.backup_boot_title),
+        subtitle = stringResource(string.backup_boot_subtitle),
+        onClick = { showDialog = true }
+    )
 }
 
 @Composable
@@ -309,95 +300,41 @@ fun MountButton() {
 
     val scope = rememberCoroutineScope()
 
-    ElevatedCard(
-        onClick = { showDialog = true },
-        modifier = Modifier
-            .height(105.sdp())
-            .fillMaxWidth(),
-    ) {
-        if (showDialog) {
-            if (isMounted == MountStatus.MOUNTED) {
-                Dialog(
-                    icon = painterResource(id = ic_folder),
-                    title = null,
-                    description = stringResource(string.umnt_question),
-                    showDialog = showDialog,
-                    onDismiss = { showDialog = false },
-                    onConfirm = {
-                        scope.launch {
-                            val result = commandHandler.umountWindows()
-                            if (!result.isSuccess) {
-                                commandError.value = CommandError(
-                                    type = ErrorType.MOUNT_ERROR,
-                                    title = M3KApp.getString(string.mnt_error_title),
-                                    message = result.error.firstOrNull()
-                                        ?: result.output.firstOrNull()
-                                        ?: M3KApp.getString(string.unknown_error)
-                                )
-                            }
-                            showDialog = false
-                            isMounted = commandHandler.isMounted()
-                        }
+    if (showDialog) {
+        val isMountedState = isMounted == MountStatus.MOUNTED
+        ConfirmDialog(
+            icon = painterResource(id = if (isMountedState) ic_folder else ic_folder_open),
+            title = null,
+            description = stringResource(if (isMountedState) string.umnt_question else string.mnt_question),
+            showDialog = showDialog,
+            onDismiss = { showDialog = false },
+            onConfirm = {
+                scope.launch {
+                    val result =
+                        if (isMountedState) commandHandler.umountWindows() else commandHandler.mountWindows()
+                    if (!result.isSuccess) {
+                        commandError.value = CommandError(
+                            type = ErrorType.MOUNT_ERROR,
+                            title = M3KApp.getString(string.mnt_error_title),
+                            message = result.error.firstOrNull()
+                                ?: result.output.firstOrNull()
+                                ?: M3KApp.getString(string.unknown_error)
+                        )
                     }
-                )
-            } else {
-                Dialog(
-                    icon = painterResource(id = ic_folder_open),
-                    title = null,
-                    description = stringResource(string.mnt_question),
-                    showDialog = showDialog,
-                    onDismiss = { showDialog = false },
-                    onConfirm = {
-                        scope.launch {
-                            val result = commandHandler.mountWindows()
-                            if (!result.isSuccess) {
-                                commandError.value = CommandError(
-                                    type = ErrorType.MOUNT_ERROR,
-                                    title = M3KApp.getString(string.mnt_error_title),
-                                    message = result.error.firstOrNull()
-                                        ?: result.output.firstOrNull()
-                                        ?: M3KApp.getString(string.unknown_error)
-                                )
-                            }
-                            showDialog = false
-                            isMounted = commandHandler.isMounted()
-                        }
-                    }
-                )
+                    showDialog = false
+                    isMounted = commandHandler.isMounted()
+                }
             }
-        }
-        Row(
-            modifier = Modifier
-                .fillMaxHeight()
-                .padding(PaddingValue),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.sdp())
-        ) {
-            IconItem(
-                icon = if (isMounted == MountStatus.MOUNTED) ic_folder else ic_folder_open,
-                modifier = Modifier.size(40.sdp())
-            )
-            Column {
-                val mounted: Int =
-                    if (isMounted == MountStatus.MOUNTED) {
-                        string.umnt_title
-                    } else {
-                        string.mnt_title
-                    }
-                Text(
-                    stringResource(mounted),
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = LineHeight,
-                    fontSize = FontSize
-                )
-                Text(
-                    stringResource(string.mnt_subtitle),
-                    lineHeight = LineHeight,
-                    fontSize = FontSize
-                )
-            }
-        }
+        )
     }
+
+    val isMountedState = isMounted == MountStatus.MOUNTED
+    ActionCard(
+        icon = if (isMountedState) ic_folder else ic_folder_open,
+        title = stringResource(if (isMountedState) string.umnt_title else string.mnt_title),
+        subtitle = stringResource(string.mnt_subtitle),
+        onClick = { showDialog = true }
+    )
 }
 
 @Composable
@@ -409,124 +346,148 @@ fun QuickBootButton() {
     val hasUefi = uefiCards.isNotEmpty()
     val currentDeviceCard by device.currentDeviceCard.collectAsStateWithLifecycle()
 
-    ElevatedCard(
-        onClick = { showDialog = true },
-        modifier = Modifier
-            .height(105.sdp())
-            .fillMaxWidth(),
-        enabled = hasUefi
-    ) {
-        if (showSpinner) {
-            StatusDialog(
-                icon = painterResource(id = ic_windows),
-                title = string.please_wait,
-                showDialog = showSpinner,
-            )
-        }
-        if (showDialog) {
-            AlertDialog(
-                icon = {
-                    Icon(
-                        painter = painterResource(id = ic_windows),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(40.sdp())
-                    )
-                },
-                title = null,
-                text = {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = stringResource(string.quickboot_question1),
-                        textAlign = TextAlign.Center,
-                        fontSize = FontSize
-                    )
-                },
-                onDismissRequest = { showDialog = false },
-                dismissButton = {
-                    Row(
-                        Modifier.align(Alignment.CenterHorizontally),
-                        horizontalArrangement = Arrangement.spacedBy(10.sdp())
-                    ) {
-                        uefiCards.forEach {
-                            AssistChip(
-                                onClick = {
-                                    scope.launch {
-                                        showDialog = false
-                                        showSpinner = true
-                                        commandHandler.quickBoot(
-                                            it.uefiPath
-                                        )
-                                        showSpinner = false
-                                    }
-                                },
-                                label = {
-                                    Text(
-                                        modifier = Modifier.padding(
-                                            vertical = 2.sdp()
-                                        ),
-                                        text = stringResource(
-                                            when (it.uefiType) {
-                                                120 -> string.quickboot_question120
-                                                90 -> string.quickboot_question90
-                                                60 -> string.quickboot_question60
-                                                else -> string.yes
-                                            }
-                                        ),
-                                        fontSize = FontSize
-                                    )
-                                }
-                            )
-                        }
+    if (showSpinner) {
+        StatusDialog(
+            icon = painterResource(id = ic_windows),
+            title = string.please_wait,
+            showDialog = showSpinner,
+        )
+    }
+    if (showDialog) {
+        AlertDialog(
+            icon = {
+                Icon(
+                    painter = painterResource(id = ic_windows),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(40.sdp())
+                )
+            },
+            title = null,
+            text = {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = stringResource(string.quickboot_question1),
+                    textAlign = TextAlign.Center,
+                    fontSize = FontSize
+                )
+            },
+            onDismissRequest = { showDialog = false },
+            dismissButton = {
+                AssistChip(
+                    onClick = { showDialog = false },
+                    label = {
+                        Text(
+                            modifier = Modifier.padding(vertical = 2.sdp()),
+                            text = stringResource(string.no),
+                            fontSize = FontSize
+                        )
+                    }
+                )
+            },
+            confirmButton = {
+                Row(
+                    //modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.sdp())
+                ) {
+                    uefiCards.forEach { card ->
                         AssistChip(
-                            onClick = { showDialog = false },
+                            onClick = {
+                                scope.launch {
+                                    showDialog = false
+                                    showSpinner = true
+                                    commandHandler.quickBoot(card.uefiPath)
+                                    showSpinner = false
+                                }
+                            },
                             label = {
                                 Text(
-                                    modifier = Modifier.padding(
-                                        vertical = 2.sdp()
+                                    modifier = Modifier.padding(vertical = 2.sdp()),
+                                    text = stringResource(
+                                        when (card.uefiType) {
+                                            120 -> string.quickboot_question120
+                                            90 -> string.quickboot_question90
+                                            60 -> string.quickboot_question60
+                                            else -> string.yes
+                                        }
                                     ),
-                                    text = stringResource(string.no),
                                     fontSize = FontSize
                                 )
                             }
                         )
                     }
-                },
-                confirmButton = { }
-            )
-        }
+                }
+            }
+        )
+    }
+
+    val (titleRes, subtitleRes) = if (hasUefi) {
+        string.quickboot_title to if (currentDeviceCard.noModem) string.quickboot_subtitle_nomodem else string.quickboot_subtitle
+    } else {
+        string.uefi_not_found_title to string.uefi_not_found_subtitle
+    }
+
+    ActionCard(
+        icon = ic_windows,
+        title = stringResource(titleRes),
+        subtitle = stringResource(subtitleRes),
+        onClick = { showDialog = true },
+        enabled = hasUefi
+    )
+}
+
+@Composable
+private fun BaseSettingItem(
+    icon: Any,
+    title: String?,
+    summary: String? = null,
+    modifier: Modifier = Modifier,
+    trailingContent: (@Composable () -> Unit)? = null
+) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        modifier = modifier
+    ) {
         Row(
             modifier = Modifier
-                .fillMaxHeight()
-                .padding(PaddingValue),
+                .padding(PaddingValue)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.sdp())
         ) {
-            IconItem(icon = ic_windows, modifier = Modifier.size(40.sdp()))
-            Column {
-                val title: Int
-                val subtitle: Int
-                if (hasUefi) {
-                    title = string.quickboot_title
-                    subtitle = when (currentDeviceCard.noModem) {
-                        true -> string.quickboot_subtitle_nomodem
-                        else -> string.quickboot_subtitle
-                    }
-                } else {
-                    title = string.uefi_not_found_title
-                    subtitle = string.uefi_not_found_subtitle
+            Column(Modifier.padding(end = 10.sdp())) {
+                IconItem(
+                    icon = icon,
+                    modifier = Modifier
+                        .size(25.sdp())
+                        .align(Alignment.CenterHorizontally)
+                )
+            }
+            Column(
+                Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+            ) {
+                title?.let {
+                    Text(
+                        text = title,
+                        fontSize = FontSize,
+                        lineHeight = LineHeight,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
-                Text(
-                    stringResource(title),
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = LineHeight,
-                    fontSize = FontSize
-                )
-                Text(
-                    stringResource(subtitle),
-                    lineHeight = LineHeight,
-                    fontSize = FontSize
-                )
+                summary?.let {
+                    Text(
+                        text = summary,
+                        fontSize = FontSize,
+                        lineHeight = LineHeight,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            trailingContent?.let {
+                Column { it() }
             }
         }
     }
@@ -542,66 +503,27 @@ fun SwitchItem(
     onCheckedChange: (Boolean) -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
-        modifier = Modifier
-            .toggleable(
-                value = checked,
-                interactionSource = interactionSource,
-                role = Role.Switch,
+    BaseSettingItem(
+        icon = icon,
+        title = title,
+        summary = summary,
+        modifier = Modifier.toggleable(
+            value = checked,
+            interactionSource = interactionSource,
+            role = Role.Switch,
+            enabled = enabled,
+            indication = LocalIndication.current,
+            onValueChange = onCheckedChange
+        ),
+        trailingContent = {
+            Switch(
+                checked = checked,
                 enabled = enabled,
-                indication = LocalIndication.current,
-                onValueChange = onCheckedChange
-            ),
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(PaddingValue)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.sdp())
-        ) {
-            Column(Modifier.padding(end = 10.sdp())) {
-                IconItem(
-                    icon = icon,
-                    modifier = Modifier
-                        .size(25.sdp())
-                        .align(Alignment.CenterHorizontally)
-                )
-            }
-            Column(
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                title?.let {
-                    Text(
-                        text = title,
-                        fontSize = FontSize,
-                        lineHeight = LineHeight,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                summary?.let {
-                    Text(
-                        text = summary,
-                        fontSize = FontSize,
-                        lineHeight = LineHeight,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Column {
-                Switch(
-                    checked = checked,
-                    enabled = enabled,
-                    onCheckedChange = onCheckedChange,
-                    interactionSource = interactionSource
-                )
-            }
+                onCheckedChange = onCheckedChange,
+                interactionSource = interactionSource
+            )
         }
-    }
+    )
 }
 
 @Composable
@@ -611,48 +533,10 @@ fun ButtonItem(
     summary: String? = null,
     onClick: () -> Unit
 ) {
-    Card(
-        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+    BaseSettingItem(
+        icon = icon,
+        title = title,
+        summary = summary,
         modifier = Modifier.clickable { onClick() }
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(PaddingValue)
-                .fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(5.sdp())
-        ) {
-            Column(Modifier.padding(end = 10.sdp())) {
-                IconItem(
-                    icon = icon,
-                    modifier = Modifier
-                        .size(25.sdp())
-                        .align(Alignment.CenterHorizontally)
-                )
-            }
-            Column(
-                Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-            ) {
-                title?.let {
-                    Text(
-                        text = title,
-                        fontSize = FontSize,
-                        lineHeight = LineHeight,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-                summary?.let {
-                    Text(
-                        text = summary,
-                        fontSize = FontSize,
-                        lineHeight = LineHeight,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-    }
+    )
 }

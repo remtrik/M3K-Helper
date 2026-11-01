@@ -26,7 +26,6 @@ import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,7 +41,6 @@ import com.ramcosta.composedestinations.annotation.RootGraph
 import com.ramcosta.composedestinations.generated.destinations.AboutCardDestination
 import com.ramcosta.composedestinations.generated.destinations.ThemeEngineScreenDestination
 import com.ramcosta.composedestinations.navigation.DestinationsNavigator
-import com.remtrik.m3khelper.M3KApp
 import com.remtrik.m3khelper.R
 import com.remtrik.m3khelper.ui.component.ButtonItem
 import com.remtrik.m3khelper.ui.component.CommonTopAppBar
@@ -240,14 +238,6 @@ private fun DeviceDropdown(
 @Composable
 private fun ForceRotationSetting() {
     val forceRotation by AppSettings.forceRotation.flow.collectAsStateWithLifecycle()
-
-    LaunchedEffect(forceRotation) {
-        M3KApp.resources.configuration.orientation = if (forceRotation) {
-            Configuration.ORIENTATION_UNDEFINED
-        } else {
-            Configuration.ORIENTATION_PORTRAIT
-        }
-    }
 
     SwitchItem(
         icon = R.drawable.ic_rotation,

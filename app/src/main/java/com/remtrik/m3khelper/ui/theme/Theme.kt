@@ -15,8 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamicColorScheme
-import com.materialkolor.ktx.animateColorScheme
+import com.materialkolor.material3.dynamicColorScheme
+import com.materialkolor.material3.ktx.animateColorScheme
 import com.remtrik.m3khelper.M3KApp
 import com.remtrik.m3khelper.util.variables.AppSettings
 
@@ -64,7 +64,7 @@ fun M3KHelperTheme(
 
     val style = remember(styleName) {
         runCatching {
-            styleName?.let { PaletteStyle.valueOf(it) }
+            styleName?.let { PaletteStyle.fromName(it) }
         }.getOrDefault(PaletteStyle.TonalSpot)
     }
 

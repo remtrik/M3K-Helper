@@ -35,6 +35,47 @@ import com.remtrik.m3khelper.util.variables.showWarningCard
 import com.remtrik.m3khelper.util.variables.ssp
 
 @Composable
+private fun BaseAlertDialog(
+    icon: @Composable () -> Unit,
+    title: String? = null,
+    description: String? = null,
+    onDismissRequest: () -> Unit = {},
+    dismissButton: (@Composable () -> Unit)? = null,
+    confirmButton: (@Composable () -> Unit)? = null,
+    content: (@Composable () -> Unit)? = null
+) {
+    AlertDialog(
+        icon = icon,
+        title = title?.let {
+            {
+                Text(
+                    text = it,
+                    textAlign = TextAlign.Center,
+                    fontSize = FontSize,
+                    lineHeight = LineHeight
+                )
+            }
+        },
+        text = {
+            if (content != null) {
+                content()
+            } else if (description != null) {
+                Text(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = description,
+                    textAlign = TextAlign.Center,
+                    lineHeight = LineHeight,
+                    fontSize = FontSize
+                )
+            }
+        },
+        onDismissRequest = onDismissRequest,
+        dismissButton = dismissButton ?: {},
+        confirmButton = confirmButton ?: {}
+    )
+}
+
+@Composable
 fun ErrorDialog(
     title: String?,
     description: String?,
@@ -42,7 +83,7 @@ fun ErrorDialog(
     onDismiss: () -> Unit,
 ) {
     if (showDialog) {
-        AlertDialog(
+        BaseAlertDialog(
             icon = {
                 Icon(
                     Icons.Filled.Error,
@@ -51,41 +92,21 @@ fun ErrorDialog(
                     modifier = Modifier.size(40.sdp())
                 )
             },
-            title = {
-                title?.let {
-                    Text(
-                        text = title,
-                        textAlign = TextAlign.Center,
-                        fontSize = FontSize,
-                        lineHeight = LineHeight,
-                    )
-                }
-            },
-            text = {
-                description?.let {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = description,
-                        textAlign = TextAlign.Center,
-                        lineHeight = LineHeight,
-                        fontSize = FontSize
-                    )
-                }
-            },
+            title = title,
+            description = description,
             onDismissRequest = onDismiss,
             dismissButton = {
                 AssistChip(
                     onClick = onDismiss,
                     label = {
                         Text(
-                            modifier = Modifier.padding(top = 2.sdp(), bottom = 2.sdp()),
+                            modifier = Modifier.padding(vertical = 2.sdp()),
                             text = stringResource(R.string.yes),
                             fontSize = FontSize
                         )
                     }
                 )
-            },
-            confirmButton = {}
+            }
         )
     }
 }
@@ -93,7 +114,7 @@ fun ErrorDialog(
 @Composable
 fun UpdateDialog(version: LatestVersionInfo) {
     val localUriHandler = LocalUriHandler.current
-    AlertDialog(
+    BaseAlertDialog(
         icon = {
             Icon(
                 imageVector = Icons.Filled.SecurityUpdate,
@@ -102,41 +123,18 @@ fun UpdateDialog(version: LatestVersionInfo) {
                 modifier = Modifier.size(40.sdp())
             )
         },
-        title = {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = stringResource(R.string.new_update),
-                textAlign = TextAlign.Center,
-                lineHeight = LineHeight,
-                fontSize = FontSize
-            )
-        },
-        text = {
-            Text(
-                modifier = Modifier.fillMaxWidth(),
-                text = stringResource(
-                    R.string.new_update_summary,
-                    BuildConfig.VERSION_NAME,
-                    version.versionName
-                ),
-                textAlign = TextAlign.Center,
-                lineHeight = LineHeight,
-                fontSize = FontSize
-            )
-        },
-        onDismissRequest = {},
-        dismissButton = {},
+        title = stringResource(R.string.new_update),
+        description = stringResource(
+            R.string.new_update_summary,
+            BuildConfig.VERSION_NAME,
+            version.versionName
+        ),
         confirmButton = {
             AssistChip(
-                onClick = {
-                    localUriHandler.openUri(version.downloadUrl)
-                },
+                onClick = { localUriHandler.openUri(version.downloadUrl) },
                 label = {
                     Text(
-                        modifier = Modifier.padding(
-                            top = 2.sdp(),
-                            bottom = 2.sdp()
-                        ),
+                        modifier = Modifier.padding(vertical = 2.sdp()),
                         text = stringResource(R.string.download),
                     )
                 }
@@ -146,7 +144,7 @@ fun UpdateDialog(version: LatestVersionInfo) {
 }
 
 @Composable
-fun Dialog(
+fun ConfirmDialog(
     icon: Painter,
     title: String?,
     description: String?,
@@ -155,7 +153,7 @@ fun Dialog(
     onConfirm: () -> Unit,
 ) {
     if (showDialog) {
-        AlertDialog(
+        BaseAlertDialog(
             icon = {
                 Icon(
                     icon,
@@ -164,34 +162,15 @@ fun Dialog(
                     modifier = Modifier.size(40.sdp())
                 )
             },
-            title = {
-                title?.let {
-                    Text(
-                        text = title,
-                        textAlign = TextAlign.Center,
-                        fontSize = FontSize,
-                        lineHeight = LineHeight,
-                    )
-                }
-            },
-            text = {
-                description?.let {
-                    Text(
-                        modifier = Modifier.fillMaxWidth(),
-                        text = description,
-                        textAlign = TextAlign.Center,
-                        lineHeight = LineHeight,
-                        fontSize = FontSize
-                    )
-                }
-            },
+            title = title,
+            description = description,
             onDismissRequest = onDismiss,
             dismissButton = {
                 AssistChip(
                     onClick = onDismiss,
                     label = {
                         Text(
-                            modifier = Modifier.padding(top = 2.sdp(), bottom = 2.sdp()),
+                            modifier = Modifier.padding(vertical = 2.sdp()),
                             text = stringResource(R.string.no),
                             fontSize = FontSize
                         )
@@ -203,7 +182,7 @@ fun Dialog(
                     onClick = onConfirm,
                     label = {
                         Text(
-                            modifier = Modifier.padding(top = 2.sdp(), bottom = 2.sdp()),
+                            modifier = Modifier.padding(vertical = 2.sdp()),
                             text = stringResource(R.string.yes),
                             fontSize = FontSize
                         )
@@ -245,10 +224,7 @@ fun NoRoot() {
                 },
                 label = {
                     Text(
-                        modifier = Modifier.padding(
-                            top = 2.sdp(),
-                            bottom = 2.sdp()
-                        ),
+                        modifier = Modifier.padding(vertical = 2.sdp()),
                         text = stringResource(R.string.reload),
                     )
                 }
@@ -332,10 +308,7 @@ fun UnknownDevice() {
                 },
                 label = {
                     Text(
-                        modifier = Modifier.padding(
-                            top = 2.sdp(),
-                            bottom = 2.sdp()
-                        ),
+                        modifier = Modifier.padding(vertical = 2.sdp()),
                         text = stringResource(R.string.device_unknown_confirm),
                     )
                 }
